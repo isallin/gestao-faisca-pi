@@ -1,0 +1,6 @@
+/* Abas PF/PJ posicionadas sobre o cabeçalho do modal */
+.form-tabs { width: max-content; margin: -64px auto 6px; }
+
+@media (max-width: 767px) {
+  .form-tabs { margin: 0; width: 100%; }
+}

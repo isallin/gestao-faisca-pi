@@ -1,0 +1,28 @@
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in oklab, var(--foreground) 50%, transparent);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.modal {
+  background: var(--background);
+  border-radius: 16px;
+  box-shadow: 0 12px 32px color-mix(in oklab, var(--foreground) 25%, transparent);
+  padding: 28px;
+  max-height: 94vh;
+  overflow: auto;
+  width: min(90vw, 1040px);
+}
+.modal-small { width: min(90vw, 640px); }
+.modal-large { width: min(92vw, 1280px); }
+.modal > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+
+@media (max-width: 767px) {
+  .modal-overlay { padding: 0; }
+  .modal,
+  .modal-small,
+  .modal-large { width: 100vw; max-width: none; min-height: 100vh; border-radius: 0; padding: 20px; }
+}

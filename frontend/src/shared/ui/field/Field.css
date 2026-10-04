@@ -1,0 +1,14 @@
+.field { display: grid; gap: 6px; }
+.field > span { font-weight: 500; }
+.field small { color: var(--destructive); }
+.input {
+  height: 44px;
+  width: 100%;
+  padding: 0 12px;
+  border: 1px solid var(--input);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--foreground);
+}
+.textarea { height: 120px; padding-top: 10px; resize: vertical; }
+.input-error { border: 2px solid var(--destructive); }

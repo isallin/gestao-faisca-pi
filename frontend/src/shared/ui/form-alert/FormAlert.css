@@ -1,0 +1,6 @@
+.form-alert {
+  padding: 12px;
+  background: color-mix(in oklab, var(--destructive) 12%, var(--panel));
+  border-left: 4px solid var(--destructive);
+  color: var(--foreground);
+}

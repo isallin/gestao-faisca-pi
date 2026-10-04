@@ -1,0 +1,4 @@
+.not-found { min-height: 100vh; display: grid; place-content: center; justify-items: center; gap: 8px; text-align: center; padding: 24px; }
+.not-found h1 { font-size: 72px; color: var(--accent); }
+.not-found p { color: var(--muted-foreground); margin: 0 0 16px; }
+.not-found .btn { text-decoration: none; }
