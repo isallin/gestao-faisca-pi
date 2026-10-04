@@ -1,65 +1,55 @@
 package com.faisca.backend.projeto;
 
-import com.faisca.backend.cliente.Cliente;
-import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "projeto")
-public class Projeto {
+public class ProjetoCadastroRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private Integer id;
+    @NotNull(message = "Cliente é obrigatório")
+    @Positive(message = "ID do cliente deve ser positivo")
+    private Integer clienteId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "fkCliente", nullable = false)
-    private Cliente cliente;
-
-    @Column(name = "codigo", nullable = false, length = 45)
+    @NotBlank(message = "Código é obrigatório")
+    @Size(max = 45, message = "Código deve ter no máximo 45 caracteres")
     private String codigo;
 
-    @Column(name = "relacao_proprietario", length = 80)
+    @Size(max = 80, message = "Campo relacaoProprietario deve ter no máximo 80 caracteres")
     private String relacaoProprietario;
 
-    @Column(name = "nome", nullable = false, length = 150)
+    @NotBlank(message = "Nome é obrigatório")
+    @Size(max = 150, message = "Nome deve ter no máximo 150 caracteres")
     private String nome;
 
-    @Column(name = "tipo_imovel", length = 45)
+    @Size(max = 45, message = "Campo tipoImovel deve ter no máximo 45 caracteres")
     private String tipoImovel;
 
-    @Column(name = "area_m2", precision = 10, scale = 2)
+    @DecimalMin(value = "0.0", message = "Área não pode ser negativa")
+    @Digits(integer = 8, fraction = 2, message = "Área deve ter até 8 dígitos inteiros e 2 decimais")
     private BigDecimal areaM2;
 
-    @Column(name = "unidade_numero", length = 20)
+    @Size(max = 20, message = "Campo unidadeNumero deve ter no máximo 20 caracteres")
     private String unidadeNumero;
 
-    @Column(name = "condominio", length = 100)
+    @Size(max = 100, message = "Campo condominio deve ter no máximo 100 caracteres")
     private String condominio;
 
-    @Column(name = "matricula", length = 50)
+    @Size(max = 50, message = "Campo matricula deve ter no máximo 50 caracteres")
     private String matricula;
 
-    @Column(name = "data_inicio")
     private LocalDateTime dataInicio;
 
-    @Column(name = "data_fim")
     private LocalDateTime dataFim;
 
-    @Column(name = "observacao", length = 300)
+    @Size(max = 300, message = "Campo observacao deve ter no máximo 300 caracteres")
     private String observacao;
 
-    // ID opcional: o relacionamento com fases/tarefas ainda não foi definido.
-    @Column(name = "fkTarefaFase")
+    @Positive(message = "ID de tarefa/fase deve ser positivo")
     private Integer fkTarefaFase;
 
-    public Integer getId() { return id; }
-
-    public Cliente getCliente() { return cliente; }
-    public void setCliente(Cliente cliente) { this.cliente = cliente; }
+    public Integer getClienteId() { return clienteId; }
+    public void setClienteId(Integer clienteId) { this.clienteId = clienteId; }
 
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
