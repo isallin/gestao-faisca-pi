@@ -1,0 +1,22 @@
+.login-page { height: 100vh; display: grid; grid-template-columns: 52fr 48fr; }
+.login-brand { background: var(--surface); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.login-brand img { width: min(54%, 460px); max-height: 62vh; object-fit: contain; }
+.login-brand p { text-align: center; color: var(--muted-foreground); font-size: 15px; }
+.login-form-panel { display: grid; place-items: center; padding: 32px; }
+.login-form-panel form { width: min(100%, 400px); display: grid; gap: 18px; }
+.login-form-panel form > small { text-transform: uppercase; color: var(--accent); font-weight: 600; }
+.login-form-panel h1 { font-size: 34px; }
+.login-form-panel h2 { font: 400 16px 'Inter', sans-serif; color: var(--muted-foreground); margin-top: -14px; }
+.password-field { display: flex; }
+.password-field .input { border-radius: 8px 0 0 8px; }
+.password-field .btn { border-radius: 0 8px 8px 0; background: var(--neutral); }
+.forgot { border: 0; background: none; margin-top: -10px; text-align: right; color: var(--muted-foreground); cursor: pointer; }
+.demo-note { text-align: center; color: var(--muted-foreground); font-size: 12px; margin: 0; }
+
+@media (max-width: 767px) {
+  .login-page { height: auto; min-height: 100vh; grid-template-columns: 1fr; grid-template-rows: 180px 1fr; }
+  .login-brand img { height: 140px; width: auto; }
+  .login-brand p { display: none; }
+  .login-form-panel { padding: 28px 16px; }
+  .login-form-panel h1 { font-size: 28px; }
+}

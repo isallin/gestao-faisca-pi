@@ -1,0 +1,56 @@
+.app-layout { min-height: 100vh; }
+.app-layout > main { margin-left: 280px; padding: 32px; max-width: 1920px; }
+
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 280px;
+  padding: 24px;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-logo { height: 76px; display: flex; justify-content: center; }
+.sidebar-logo img { height: 72px; width: auto; }
+.profile { text-align: center; margin: 20px 0 28px; }
+.profile div {
+  width: 72px; height: 72px; margin: auto; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--surface); font: 600 22px 'Poppins', sans-serif;
+}
+.profile span, .profile small { display: block; }
+.profile span { font-weight: 600; margin-top: 8px; }
+.profile small { color: var(--muted-foreground); }
+.sidebar nav { display: grid; gap: 6px; }
+.sidebar nav a, .logout {
+  min-height: 44px; padding: 0 12px; border-radius: 8px;
+  display: flex; align-items: center; gap: 12px;
+  color: var(--foreground); text-decoration: none;
+}
+.sidebar nav a:hover, .nav-active { background: var(--surface); }
+.nav-active { font-weight: 600; }
+.logout { margin-top: auto; color: var(--muted-foreground); }
+.sidebar-close, .mobile-menu { display: none; }
+
+@media (max-width: 1100px) {
+  .app-layout > main { margin-left: 240px; padding: 24px; }
+  .sidebar { width: 240px; }
+}
+
+@media (max-width: 767px) {
+  .mobile-menu {
+    display: flex; position: fixed; top: 10px; left: 10px; z-index: 20;
+    background: var(--panel);
+    box-shadow: 0 1px 4px color-mix(in oklab, var(--foreground) 20%, transparent);
+  }
+  .app-layout > main { margin-left: 0; padding: 76px 16px 24px; }
+  .sidebar { transform: translateX(-100%); transition: 150ms; }
+  .sidebar-open { transform: none; }
+  .sidebar-close { display: flex; position: absolute; right: 10px; top: 10px; }
+  .sidebar-backdrop {
+    position: fixed; inset: 0; z-index: 29;
+    background: color-mix(in oklab, var(--foreground) 45%, transparent);
+  }
+}

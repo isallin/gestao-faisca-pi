@@ -1,0 +1,8 @@
+.segments { display: flex; border: 1px solid var(--input); border-radius: 8px; padding: 2px; background: var(--panel); }
+.segments button { height: 38px; border: 0; background: transparent; padding: 0 20px; border-radius: 6px; cursor: pointer; }
+.segments button[aria-selected='true'] { background: var(--primary); font-weight: 600; }
+
+@media (max-width: 767px) {
+  .segments { width: 100%; }
+  .segments button { flex: 1; }
+}

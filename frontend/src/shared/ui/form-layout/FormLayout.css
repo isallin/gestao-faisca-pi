@@ -1,0 +1,17 @@
+.modal-form { display: grid; gap: 20px; }
+.form-columns { display: grid; gap: 24px; }
+.form-columns.two { grid-template-columns: repeat(2, 1fr); }
+.form-columns.three { grid-template-columns: repeat(3, 1fr); }
+.form-columns > div { display: grid; align-content: start; gap: 12px; }
+.form-columns > div + div { border-left: 1px solid var(--border); padding-left: 24px; }
+.form-columns h3 { text-align: center; margin-bottom: 5px; }
+.form-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+.form-actions-full { display: block; }
+
+@media (max-width: 767px) {
+  .form-columns.two,
+  .form-columns.three,
+  .form-pair { grid-template-columns: 1fr; }
+  .form-columns > div + div { border-left: 0; border-top: 1px solid var(--border); padding-left: 0; padding-top: 20px; }
+}

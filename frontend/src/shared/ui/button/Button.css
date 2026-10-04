@@ -1,0 +1,27 @@
+.btn {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font: 500 14px 'Poppins', sans-serif;
+  cursor: pointer;
+  transition: 150ms;
+}
+.btn:active { transform: scale(0.98); }
+.btn-primary,
+.btn-pill { background: var(--primary); color: var(--foreground); }
+.btn-primary:hover,
+.btn-pill:hover { background: var(--accent); color: var(--accent-foreground); }
+.btn-pill { width: 100%; border-radius: 999px; }
+.btn-secondary { background: var(--panel); color: var(--foreground); border: 1px solid var(--input); }
+.btn-secondary:hover { background: var(--surface); }
+.btn-ghost,
+.btn-icon { background: transparent; color: var(--foreground); }
+.btn-ghost:hover,
+.btn-icon:hover { background: var(--surface); }
+.btn-icon { width: 44px; padding: 0; }
+.btn-danger { background: var(--destructive); color: var(--destructive-foreground); }
