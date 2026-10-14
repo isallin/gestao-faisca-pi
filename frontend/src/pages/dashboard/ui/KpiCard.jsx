@@ -4,9 +4,9 @@ export function KpiCard({ icon, label, value, tone, percent }) {
     <article className="kpi">
       <div className={`kpi-icon ${tone}`}>{icon}</div>
       <div>
-        <small>{label}</small>
+        <span>{label}</span>
         <strong>{value}</strong>
-        <span>Atualizado hoje</span>
+        <small>Atualizado hoje</small>
       </div>
       <div className={`donut ${tone}`} style={{ '--progress': `${percent * 3.6}deg` }}>
         <b>{percent}%</b>

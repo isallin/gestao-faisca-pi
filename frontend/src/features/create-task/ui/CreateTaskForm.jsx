@@ -43,7 +43,7 @@ export function CreateTaskForm({ onClose }) {
         <FormAlert>{error}</FormAlert>
         <FormColumns cols={2}>
           <div>
-            <SelectField label="Membros" name="member" options={collaborators.map((c) => c.name)} />
+            <SelectField label="Responsável" name="member" options={collaborators.map((c) => c.name)} />
             <Field label="Nome" name="name" />
             <SelectField label="Cliente" name="client" options={clients.map((c) => c.name)}>
               <option value="">Selecione</option>
@@ -57,9 +57,6 @@ export function CreateTaskForm({ onClose }) {
           <div>
             <Field label="Data de início" name="start" type="date" />
             <Field label="Data do fim" name="end" type="date" />
-            <SelectField label="Dependências" name="dependency" options={tasks.items.map((t) => t.name)}>
-              <option value="">Nenhuma</option>
-            </SelectField>
             <Field label="Observações" name="note" textarea />
             <FormActions label="Salvar tarefa" onCancel={onClose} />
           </div>

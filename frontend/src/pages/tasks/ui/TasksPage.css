@@ -1,4 +1,5 @@
 .tasks-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
+.tasks-button {display: flex;}
 .tasks-layout { display: grid; grid-template-columns: minmax(280px, 4fr) minmax(560px, 8fr); gap: 24px; }
 .task-list-column > .btn { width: 100%; margin-bottom: 12px; }
 .task-list { background: var(--panel); border-radius: 16px; padding: 12px; display: grid; gap: 12px; max-height: 700px; overflow: auto; }

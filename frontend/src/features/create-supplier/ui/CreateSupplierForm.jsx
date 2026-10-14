@@ -36,7 +36,7 @@ export function CreateSupplierForm({ onClose }) {
             <Field label="Observações" name="note" textarea />
           </div>
         </FormColumns>
-        <FormActions label="Salvar fornecedor" onCancel={onClose} pill />
+        <FormActions label="Salvar fornecedor" onCancel={onClose} />
       </Form>
     </Modal>
   );
