@@ -72,13 +72,14 @@ export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
                     </>
                   )}
                 </Button>
+                <Button variant="ghost">
+                  <Pencil size={15} /> Editar
+                </Button>
               </div>
 
               {isOpen && (
                 <div className="entity-detail">
-                  <Button variant="ghost">
-                    <Pencil size={15} /> Editar
-                  </Button>
+
                   {detail(row).map((item) => (
                     <div key={item.label}>
                       <small>{item.label}</small>
@@ -88,7 +89,7 @@ export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
                 </div>
               )}
 
-              <CheckRail label={`Selecionar ${String(row[columns[0].key])}`} />
+              {/* <CheckRail label={`Selecionar ${String(row[columns[0].key])}`} /> */}
             </article>
           );
         })}
