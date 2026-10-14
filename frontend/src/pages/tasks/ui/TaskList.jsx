@@ -20,7 +20,7 @@ export function TaskList({ tasks }) {
                   {task.note}
                   <br />
                   <span>
-                    {task.member} · {task.priority}
+                    {task.member} · Prioridade: {task.priority}
                   </span>
                 </p>
               )}

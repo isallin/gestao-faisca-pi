@@ -24,11 +24,11 @@ export function FormActions({ label, onCancel, pill = false }) {
   return (
     <div className={cn('form-actions', pill && 'form-actions-full')}>
       {!pill && (
-        <Button variant="secondary" onClick={onCancel}>
+        <Button variant="danger" onClick={onCancel}>
           Cancelar
         </Button>
       )}
-      <Button variant={pill ? 'pill' : 'primary'} type="submit">
+      <Button variant="confirm" type="submit">
         {label}
       </Button>
     </div>

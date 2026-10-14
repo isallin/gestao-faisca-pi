@@ -39,7 +39,7 @@ export function CreateCollaboratorForm({ onClose }) {
           <Field label="Senha" name="password" type="password" />
           <Field label="Confirmar senha" name="confirm" type="password" />
         </FormPair>
-        <FormActions label="Salvar colaborador" onCancel={onClose} pill />
+        <FormActions label="Salvar colaborador" onCancel={onClose} />
       </Form>
     </Modal>
   );

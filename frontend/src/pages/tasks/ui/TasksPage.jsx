@@ -31,14 +31,16 @@ export function TasksPage() {
     <>
       <header className="tasks-head">
         <h1>Tarefas</h1>
-        <Segmented options={MODES} value={mode} onChange={setMode} />
+        <div className="tasks-button">
+          <Button variant="secondary" onClick={() => navigate('/add-tarefa')}>
+            + Adicionar Tarefa
+          </Button>
+          <Segmented options={MODES} value={mode} onChange={setMode} />
+        </div>
       </header>
 
       <section className="tasks-layout">
         <aside className="task-list-column">
-          <Button variant="secondary" onClick={() => navigate('/add-tarefa')}>
-            + Adicionar Tarefa
-          </Button>
           <TaskList tasks={filtered} />
         </aside>
 
@@ -47,12 +49,11 @@ export function TasksPage() {
             <h2>
               <CalendarDays /> Agosto de 2026
             </h2>
+
             <Button variant="icon" onClick={() => setFilterOpen((v) => !v)} aria-label="Filtrar tarefas">
               <Filter />
             </Button>
           </header>
-
-          {mode === 'monthly' ? <TaskCalendar tasks={filtered} /> : <TaskGantt tasks={filtered} />}
 
           <FilterPanel open={filterOpen}>
             <label>
@@ -77,6 +78,7 @@ export function TasksPage() {
               </select>
             </label>
           </FilterPanel>
+          {mode === 'monthly' ? <TaskCalendar tasks={filtered} /> : <TaskGantt tasks={filtered} />}
         </div>
       </section>
     </>
