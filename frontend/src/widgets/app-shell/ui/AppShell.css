@@ -13,7 +13,7 @@
   flex-direction: column;
 }
 .sidebar-logo { height: 76px; display: flex; justify-content: center; }
-.sidebar-logo img { height: 72px; width: auto; }
+.sidebar-logo img { height: 60px; width: auto; }
 .profile { text-align: center; margin: 20px 0 28px; }
 .profile div {
   width: 72px; height: 72px; margin: auto; border-radius: 50%;
