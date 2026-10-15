@@ -1,26 +1,50 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
-import { Button, CheckRail, FilterPanel, PageHeader } from '@/shared/ui';
+import { Button, FilterPanel, PageHeader } from '@/shared/ui';
+import { ALL, applyFilters, initialFilterValues } from '../lib/filters';
 import './EntityList.css';
 
 /**
- * Lista expansível com busca, usada nas telas de clientes, colaboradores,
- * fornecedores e projetos.
+ * Lista expansível com busca e filtros, usada nas telas de clientes, colaboradores,
+ * fornecedores, projetos e tarefas.
  *
  * @param {{
  *   title: string, addLabel: string, rows: Array<{id:number}>,
- *   columns: Array<{key:string,label:string}>,
+ *   columns: Array<{key:string,label:string, render?: (row:object) => string}>,
  *   detail: (row:object) => Array<{label:string,value:string}>,
- *   onAdd: () => void
+ *   onAdd: () => void,
+ *   onEdit?: (row:object) => void,
+ *   filters?: Array<{key:string,label:string,options:Array<{value:string,label:string}>,match:(row:object,value:string)=>boolean}>,
+ *   filterValues?: Record<string,string>, onFilterChange?: (key:string, value:string) => void,
+ *   headerExtra?: import('react').ReactNode,
+ *   detailFooter?: (row:object) => import('react').ReactNode
  * }} props
  */
-export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
+export function EntityList({
+  title,
+  addLabel,
+  rows,
+  columns,
+  detail,
+  onAdd,
+  onEdit,
+  filters = [],
+  filterValues,
+  onFilterChange,
+  headerExtra,
+  detailFooter,
+}) {
   const [expandedId, setExpandedId] = useState();
   const [filterOpen, setFilterOpen] = useState(false);
   const [term, setTerm] = useState('');
+  const [ownValues, setOwnValues] = useState(() => initialFilterValues(filters));
 
-  const visible = rows.filter((row) =>
-    Object.values(row).join(' ').toLowerCase().includes(term.toLowerCase()),
+  const values = filterValues ?? ownValues;
+  const changeFilter = onFilterChange ?? ((key, value) => setOwnValues((v) => ({ ...v, [key]: value })));
+
+  const lowerTerm = term.toLowerCase();
+  const visible = applyFilters(rows, filters, values).filter((row) =>
+    Object.values(row).join(' ').toLowerCase().includes(lowerTerm),
   );
 
   return (
@@ -28,9 +52,12 @@ export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
       <PageHeader
         title={title}
         action={
-          <Button variant="secondary" onClick={onAdd}>
-            + {addLabel}
-          </Button>
+          <>
+            <Button variant="secondary" onClick={onAdd}>
+              + {addLabel}
+            </Button>
+            {headerExtra}
+          </>
         }
         onFilter={() => setFilterOpen((v) => !v)}
       />
@@ -46,6 +73,22 @@ export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
               placeholder={`Buscar em ${title.toLowerCase()}`}
             />
           </label>
+          {filters.map((filter) => (
+            <label key={filter.key}>
+              {filter.label}
+              <select
+                className="input"
+                value={values[filter.key] ?? ALL}
+                onChange={(e) => changeFilter(filter.key, e.target.value)}
+              >
+                {filter.options.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ))}
         </FilterPanel>
       )}
 
@@ -58,7 +101,7 @@ export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
                 {columns.map((column) => (
                   <div key={column.key}>
                     <small>{column.label}</small>
-                    <strong>{String(row[column.key] || '—')}</strong>
+                    <strong>{String((column.render ? column.render(row) : row[column.key]) || '—')}</strong>
                   </div>
                 ))}
                 <Button variant="ghost" aria-expanded={isOpen} onClick={() => setExpandedId(isOpen ? undefined : row.id)}>
@@ -72,28 +115,29 @@ export function EntityList({ title, addLabel, rows, columns, detail, onAdd }) {
                     </>
                   )}
                 </Button>
+                {onEdit && (
+                  <Button variant="ghost" onClick={() => onEdit(row)}>
+                    <Pencil size={15} /> Editar
+                  </Button>
+                )}
               </div>
 
               {isOpen && (
                 <div className="entity-detail">
-                  <Button variant="ghost">
-                    <Pencil size={15} /> Editar
-                  </Button>
                   {detail(row).map((item) => (
                     <div key={item.label}>
                       <small>{item.label}</small>
                       <p>{item.value || 'Não informado'}</p>
                     </div>
                   ))}
+                  {detailFooter && <div className="entity-detail-footer">{detailFooter(row)}</div>}
                 </div>
               )}
-
-              <CheckRail label={`Selecionar ${String(row[columns[0].key])}`} />
             </article>
           );
         })}
         {visible.length === 0 && (
-          <div className="empty">Nenhum(a) {title.toLowerCase()} cadastrado(a) ainda.</div>
+          <div className="empty">Nenhum(a) {title.toLowerCase()} encontrado(a).</div>
         )}
       </section>
     </>

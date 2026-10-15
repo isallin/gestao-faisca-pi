@@ -25,3 +25,7 @@
 .btn-icon:hover { background: var(--surface); }
 .btn-icon { width: 44px; padding: 0; }
 .btn-danger { background: var(--destructive); color: var(--destructive-foreground); }
+.btn-danger:hover { background: rgb(177, 31, 31);}
+
+.btn-confirm { background: rgb(104, 156, 60); color: var(--destructive-foreground); border: 1px solid var(--input); }
+.btn-confirm:hover { background: rgb(62, 129, 23); }

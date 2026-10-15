@@ -18,9 +18,9 @@ const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/tarefa', label: 'Tarefas', icon: CalendarCheck2 },
   { to: '/clientes', label: 'Clientes', icon: ContactRound },
-  { to: '/colaborador', label: 'Colaboradores', icon: BriefcaseBusiness },
   { to: '/fornecedores', label: 'Fornecedores', icon: Handshake },
   { to: '/projetos', label: 'Projetos', icon: Building2 },
+  { to: '/colaborador', label: 'Colaboradores', icon: BriefcaseBusiness },
 ];
 
 export function AppShell({ children }) {
@@ -37,9 +37,6 @@ export function AppShell({ children }) {
         <Button variant="icon" className="sidebar-close" onClick={close} aria-label="Fechar menu">
           <X />
         </Button>
-        <Link to="/dashboard" className="sidebar-logo" onClick={close}>
-          <img src={logo} alt="Faísca Arquitetura" />
-        </Link>
         <div className="profile">
           <div>CF</div>
           <span>Camila Ferreira</span>
@@ -55,6 +52,9 @@ export function AppShell({ children }) {
         </nav>
         <Link to="/login" className="logout">
           Sair
+        </Link>
+        <Link to="/dashboard" className="sidebar-logo" onClick={close}>
+          <img src={logo} alt="Faísca Arquitetura" />
         </Link>
       </aside>
 
