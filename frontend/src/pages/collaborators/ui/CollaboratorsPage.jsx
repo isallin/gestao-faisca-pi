@@ -11,7 +11,6 @@ const COLUMNS = [
 
 const detail = (person) => [
   { label: 'E-mail', value: person.email },
-  { label: 'Projetos envolvidos', value: person.projects },
 ];
 
 export function CollaboratorsPage() {
@@ -27,6 +26,7 @@ export function CollaboratorsPage() {
       columns={COLUMNS}
       detail={detail}
       onAdd={() => navigate('/add-colaborador')}
+      onEdit={(person) => navigate(`/editar-colaborador/${person.id}`)}
     />
   );
 }

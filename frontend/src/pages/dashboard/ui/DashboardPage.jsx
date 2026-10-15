@@ -4,6 +4,7 @@ import { isUrgentTask, useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { Button } from '@/shared/ui';
 import { KpiCard } from './KpiCard';
+import { useState } from 'react';
 import './DashboardPage.css';
 
 const DONE_BY_MONTH = [
