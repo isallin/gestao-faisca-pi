@@ -1,2 +1,9 @@
 export { TasksProvider, useTasks } from './model/store';
-export { isUrgentTask, taskTone } from './lib/task-rules';
+export {
+  TASK_PRIORITIES,
+  formatDate,
+  isUrgentTask,
+  sortTasks,
+  taskTone,
+  totalHours,
+} from './lib/task-rules';

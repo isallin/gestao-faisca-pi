@@ -8,6 +8,7 @@
 .form-pair { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
 .form-actions-full { display: block; }
+.form-actions .btn { min-width: 140px; border-radius: var(--radius); }
 
 @media (max-width: 767px) {
   .form-columns.two,
