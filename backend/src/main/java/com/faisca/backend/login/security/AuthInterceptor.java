@@ -1,4 +1,4 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

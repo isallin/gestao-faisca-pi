@@ -1,4 +1,4 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.dto;
 
 
 public class LoginResponse {

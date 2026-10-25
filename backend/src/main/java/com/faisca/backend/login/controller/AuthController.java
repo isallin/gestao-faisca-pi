@@ -1,4 +1,4 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
