@@ -13,7 +13,8 @@ const renderAt = (path) =>
   );
 
 const openFilters = () => fireEvent.click(screen.getByRole('button', { name: /filtrar/i }));
-const select = (label, value) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
+const select = (label, value) =>
+  fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
 describe('Tarefas', () => {
   it('ordena por data e, em empate, por prioridade', () => {
@@ -41,11 +42,112 @@ describe('Tarefas', () => {
     renderAt('/tarefa');
     fireEvent.click(screen.getByRole('button', { name: 'RES-024 — Revisar planta de iluminação' }));
     const dialog = screen.getByRole('dialog');
+    // Tela de detalhes: sem formulário, com o botão para registrar tempo
     expect(within(dialog).getByText(/Tempo dedicado: 0 h/)).toBeInTheDocument();
-    fireEvent.change(within(dialog).getByLabelText('Data'), { target: { value: '2026-08-04' } });
-    fireEvent.change(within(dialog).getByLabelText('Horas'), { target: { value: '2' } });
-    fireEvent.click(within(dialog).getByRole('button', { name: /Registrar tempo/ }));
-    expect(within(dialog).getByText(/Tempo dedicado: 2 h/)).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Data/hora início')).toBeNull();
+    fireEvent.click(within(dialog).getByRole('button', { name: /\+ Registrar tempo/ }));
+    // Tela de cadastro
+    fireEvent.change(within(dialog).getByLabelText('Data/hora início'), {
+      target: { value: '2026-08-04T09:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Data/hora fim'), {
+      target: { value: '2026-08-04T11:30' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Descrição'), {
+      target: { value: 'Revisão dos pontos' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+    // Volta aos detalhes com o histórico atualizado
+    expect(within(dialog).getByText(/Tempo dedicado: 2,5 h/)).toBeInTheDocument();
+    expect(within(dialog).getByText('Revisão dos pontos')).toBeInTheDocument();
+  });
+
+  it('valida o registro de tempo e permite cancelar', () => {
+    renderAt('/tarefa');
+    fireEvent.click(screen.getByRole('button', { name: 'RES-024 — Revisar planta de iluminação' }));
+    const dialog = screen.getByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: /\+ Registrar tempo/ }));
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+    expect(within(dialog).getByText('Informe a data/hora de início e de fim.')).toBeInTheDocument();
+    fireEvent.change(within(dialog).getByLabelText('Data/hora início'), {
+      target: { value: '2026-08-04T11:00' },
+    });
+    fireEvent.change(within(dialog).getByLabelText('Data/hora fim'), {
+      target: { value: '2026-08-04T09:00' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+    expect(
+      within(dialog).getByText('A data/hora de fim deve ser posterior à de início.'),
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }));
+    expect(within(dialog).getByRole('button', { name: /\+ Registrar tempo/ })).toBeInTheDocument();
+    expect(within(dialog).getByText(/Tempo dedicado: 0 h/)).toBeInTheDocument();
+  });
+
+  it('Registros: lista os tempos registrados e filtra por projeto', () => {
+    renderAt('/tarefa');
+    const register = (name, start, end, note) => {
+      fireEvent.click(screen.getByRole('button', { name }));
+      const dialog = screen.getByRole('dialog');
+      fireEvent.click(within(dialog).getByRole('button', { name: /\+ Registrar tempo/ }));
+      fireEvent.change(within(dialog).getByLabelText('Data/hora início'), {
+        target: { value: start },
+      });
+      fireEvent.change(within(dialog).getByLabelText('Data/hora fim'), { target: { value: end } });
+      fireEvent.change(within(dialog).getByLabelText('Descrição'), { target: { value: note } });
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Salvar' }));
+      fireEvent.click(within(dialog).getByRole('button', { name: 'Fechar' }));
+    };
+    register(
+      'RES-024 — Revisar planta de iluminação',
+      '2026-08-04T09:00',
+      '2026-08-04T11:30',
+      'Revisão dos pontos',
+    );
+    register(
+      'COM-011 — Atualizar orçamento geral',
+      '2026-08-10T14:00',
+      '2026-08-10T15:00',
+      'Ajuste de valores',
+    );
+
+    fireEvent.click(
+      within(screen.getByRole('navigation', { name: 'Menu principal' })).getByRole('link', {
+        name: 'Registros',
+      }),
+    );
+    const list = screen.getByRole('region', { name: 'Lista de Registros' });
+    expect(within(list).getByText('Revisar planta de iluminação')).toBeInTheDocument();
+    expect(within(list).getByText('Atualizar orçamento geral')).toBeInTheDocument();
+    expect(within(list).getByText('2,5 h')).toBeInTheDocument();
+
+    openFilters();
+    select('Projeto', 'COM-011');
+    expect(within(list).queryByText('Revisar planta de iluminação')).toBeNull();
+    expect(within(list).getByText('Atualizar orçamento geral')).toBeInTheDocument();
+    fireEvent.click(within(list).getByRole('button', { name: /Ver mais/ }));
+    expect(within(list).getByText('Ajuste de valores')).toBeInTheDocument();
+  });
+
+  it('Registros: avisa quando não há tempos registrados', () => {
+    renderAt('/registros');
+    expect(screen.getByText('Nenhum registro de tempo encontrado.')).toBeInTheDocument();
+  });
+
+  it('menu lateral: Registros após Tarefas e Colaboradores por último', () => {
+    renderAt('/dashboard');
+    const labels = within(screen.getByRole('navigation', { name: 'Menu principal' }))
+      .getAllByRole('link')
+      .map((a) => a.textContent);
+    expect(labels).toEqual([
+      'Dashboard',
+      'Tarefas',
+      'Registros',
+      'Clientes',
+      'Fornecedores',
+      'Projetos',
+      'Colaboradores',
+    ]);
   });
 
   it('modo Lista usa os cards padrão e permite editar', () => {

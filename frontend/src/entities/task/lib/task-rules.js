@@ -25,5 +25,11 @@ export function sortTasks(tasks) {
 export const totalHours = (task) =>
   (task.timeLogs ?? []).reduce((sum, log) => sum + Number(log.hours || 0), 0);
 
+/** Horas entre dois "AAAA-MM-DDTHH:mm" (arredondadas a 2 casas). 0 se inválido ou fim <= início. */
+export function hoursBetween(start, end) {
+  const diff = (new Date(end) - new Date(start)) / 36e5;
+  return diff > 0 ? Math.round(diff * 100) / 100 : 0;
+}
+
 /** "2026-08-03" → "03/08/2026" */
 export const formatDate = (iso) => (iso ? iso.split('-').reverse().join('/') : '—');

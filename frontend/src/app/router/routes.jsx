@@ -9,6 +9,7 @@ import { LoginPage } from '@/pages/login';
 import { NotFoundPage } from '@/pages/not-found';
 import { ProjectCreatePage } from '@/pages/project-create';
 import { ProjectsPage } from '@/pages/projects';
+import { RecordsPage } from '@/pages/records';
 import { SupplierCreatePage } from '@/pages/supplier-create';
 import { SuppliersPage } from '@/pages/suppliers';
 import { TaskCreatePage } from '@/pages/task-create';
@@ -31,6 +32,7 @@ export const routes = [
     children: [
       { path: '/dashboard', element: <DashboardPage /> },
       { path: '/tarefa', element: <TasksPage /> },
+      { path: '/registros', element: <RecordsPage /> },
       { path: '/clientes', element: <ClientsPage /> },
       { path: '/colaborador', element: <CollaboratorsPage /> },
       { path: '/fornecedores', element: <SuppliersPage /> },
