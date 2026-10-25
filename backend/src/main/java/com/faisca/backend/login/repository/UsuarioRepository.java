@@ -1,4 +1,4 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

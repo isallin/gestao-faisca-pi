@@ -1,4 +1,4 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

@@ -1,5 +1,6 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.security;
 
+import com.faisca.backend.login.model.Usuario;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

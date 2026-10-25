@@ -1,4 +1,4 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

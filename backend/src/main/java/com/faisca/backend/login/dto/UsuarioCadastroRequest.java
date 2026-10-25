@@ -1,8 +1,8 @@
-package com.faisca.backend.login;
+package com.faisca.backend.login.dto;
 
 import jakarta.validation.constraints.*;
 
-public class UsuarioPutRequest {
+public class UsuarioCadastroRequest {
 
     @NotBlank(message = "Nome é obrigatório")
     @Size(max = 70, message = "Nome deve ter no máximo 70 caracteres")
@@ -17,6 +17,7 @@ public class UsuarioPutRequest {
     @NotBlank(message = "Cargo é obrigatório")
     @Size(max = 45, message = "Cargo deve ter no máximo 45 caracteres")
     private String cargo;
+    @NotBlank(message = "Senha é obrigatória")
     @Size(min = 8, max = 72, message = "Senha deve ter entre 8 e 72 caracteres")
     private String senha;
 
