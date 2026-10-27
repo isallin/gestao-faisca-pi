@@ -67,5 +67,13 @@
 .time-logs li { display: grid; grid-template-columns: auto auto 1fr; gap: 12px; align-items: baseline; padding: 8px 12px; background: var(--neutral); border-radius: 8px; }
 .time-logs small { color: var(--muted-foreground); }
 .time-form { display: grid; gap: 12px; }
-.time-form .btn { justify-self: start; }
+.task-detail .task-notes { grid-template-columns: repeat(2, 1fr); gap: 12px 24px; align-items: center; }
+.task-notes > div { display: grid; gap: 8px; }
+.task-notes > div > p { margin: 0; }
+.task-notes .btn { justify-self: start; }
+.time-logs strong small { font-weight: 400; color: var(--muted-foreground); }
+.time-form-actions { display: flex; justify-content: flex-end; gap: 12px; }
 .time-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) {
+  .time-form-row, .task-detail .task-notes { grid-template-columns: 1fr; }
+}

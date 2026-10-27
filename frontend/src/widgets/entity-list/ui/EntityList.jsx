@@ -12,11 +12,12 @@ import './EntityList.css';
  *   title: string, addLabel: string, rows: Array<{id:number}>,
  *   columns: Array<{key:string,label:string, render?: (row:object) => string}>,
  *   detail: (row:object) => Array<{label:string,value:string}>,
- *   onAdd: () => void,
+ *   onAdd?: () => void,  // sem onAdd, o botão "+ Adicionar" não é exibido
  *   onEdit?: (row:object) => void,
  *   filters?: Array<{key:string,label:string,options:Array<{value:string,label:string}>,match:(row:object,value:string)=>boolean}>,
  *   filterValues?: Record<string,string>, onFilterChange?: (key:string, value:string) => void,
  *   headerExtra?: import('react').ReactNode,
+ *   emptyMessage?: string,
  *   detailFooter?: (row:object) => import('react').ReactNode
  * }} props
  */
@@ -33,6 +34,7 @@ export function EntityList({
   onFilterChange,
   headerExtra,
   detailFooter,
+  emptyMessage,
 }) {
   const [expandedId, setExpandedId] = useState();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -40,7 +42,8 @@ export function EntityList({
   const [ownValues, setOwnValues] = useState(() => initialFilterValues(filters));
 
   const values = filterValues ?? ownValues;
-  const changeFilter = onFilterChange ?? ((key, value) => setOwnValues((v) => ({ ...v, [key]: value })));
+  const changeFilter =
+    onFilterChange ?? ((key, value) => setOwnValues((v) => ({ ...v, [key]: value })));
 
   const lowerTerm = term.toLowerCase();
   const visible = applyFilters(rows, filters, values).filter((row) =>
@@ -53,9 +56,11 @@ export function EntityList({
         title={title}
         action={
           <>
-            <Button variant="secondary" onClick={onAdd}>
-              + {addLabel}
-            </Button>
+            {onAdd && (
+              <Button variant="secondary" onClick={onAdd}>
+                + {addLabel}
+              </Button>
+            )}
             {headerExtra}
           </>
         }
@@ -101,10 +106,16 @@ export function EntityList({
                 {columns.map((column) => (
                   <div key={column.key}>
                     <small>{column.label}</small>
-                    <strong>{String((column.render ? column.render(row) : row[column.key]) || '—')}</strong>
+                    <strong>
+                      {String((column.render ? column.render(row) : row[column.key]) || '—')}
+                    </strong>
                   </div>
                 ))}
-                <Button variant="ghost" aria-expanded={isOpen} onClick={() => setExpandedId(isOpen ? undefined : row.id)}>
+                <Button
+                  variant="ghost"
+                  aria-expanded={isOpen}
+                  onClick={() => setExpandedId(isOpen ? undefined : row.id)}
+                >
                   {isOpen ? (
                     <>
                       <ChevronUp size={16} /> Ver menos
@@ -137,7 +148,9 @@ export function EntityList({
           );
         })}
         {visible.length === 0 && (
-          <div className="empty">Nenhum(a) {title.toLowerCase()} encontrado(a).</div>
+          <div className="empty">
+            {emptyMessage ?? `Nenhum(a) ${title.toLowerCase()} encontrado(a).`}
+          </div>
         )}
       </section>
     </>
