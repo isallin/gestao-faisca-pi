@@ -4,19 +4,21 @@ import {
   BriefcaseBusiness,
   Building2,
   CalendarCheck2,
+  ClipboardClock,
   ContactRound,
   Handshake,
   LayoutDashboard,
+  LogOut,
   Menu,
   X,
 } from 'lucide-react';
-import logo from '@/shared/assets/faisca-logo.png';
 import { Button } from '@/shared/ui';
 import './AppShell.css';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/tarefa', label: 'Tarefas', icon: CalendarCheck2 },
+  { to: '/registros', label: 'Registros', icon: ClipboardClock },
   { to: '/clientes', label: 'Clientes', icon: ContactRound },
   { to: '/fornecedores', label: 'Fornecedores', icon: Handshake },
   { to: '/projetos', label: 'Projetos', icon: Building2 },
@@ -29,7 +31,12 @@ export function AppShell({ children }) {
 
   return (
     <div className="app-layout">
-      <Button variant="icon" className="mobile-menu" onClick={() => setOpen(true)} aria-label="Abrir menu">
+      <Button
+        variant="icon"
+        className="mobile-menu"
+        onClick={() => setOpen(true)}
+        aria-label="Abrir menu"
+      >
         <Menu />
       </Button>
 
@@ -44,17 +51,20 @@ export function AppShell({ children }) {
         </div>
         <nav aria-label="Menu principal">
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavLink key={to} to={to} onClick={close} className={({ isActive }) => (isActive ? 'nav-active' : '')}>
+            <NavLink
+              key={to}
+              to={to}
+              onClick={close}
+              className={({ isActive }) => (isActive ? 'nav-active' : '')}
+            >
               <Icon size={20} />
               <span>{label}</span>
             </NavLink>
           ))}
         </nav>
         <Link to="/login" className="logout">
-          Sair
-        </Link>
-        <Link to="/dashboard" className="sidebar-logo" onClick={close}>
-          <img src={logo} alt="Faísca Arquitetura" />
+          <LogOut size={20} />
+          <span>Sair</span>
         </Link>
       </aside>
 

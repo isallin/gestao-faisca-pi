@@ -39,7 +39,10 @@ const detail = (task) => {
     { label: 'Status', value: task.status },
     { label: 'Prioridade', value: task.priority },
     { label: 'Categoria', value: task.category },
-    { label: 'Checklist', value: task.checklist?.length ? `${done} de ${task.checklist.length} concluídos` : '' },
+    {
+      label: 'Checklist',
+      value: task.checklist?.length ? `${done} de ${task.checklist.length} concluídos` : '',
+    },
     { label: 'Observações', value: task.note },
   ];
 };
@@ -51,7 +54,8 @@ export function TasksPage() {
   const { items: projects } = useProjects();
   const [mode, setMode] = useState('monthly');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [selectedId, setSelectedId] = useState();
+  const [selected, setSelected] = useState();
+  const openDetails = (id) => setSelected({ id, register: false });
 
   const filters = useMemo(
     () => [
@@ -84,7 +88,14 @@ export function TasksPage() {
   const filtered = useMemo(() => applyFilters(sorted, filters, values), [sorted, filters, values]);
 
   const modeSwitch = <Segmented options={MODES} value={mode} onChange={setMode} />;
-  const modal = selectedId !== undefined && <TaskDetailModal taskId={selectedId} onClose={() => setSelectedId(undefined)} />;
+  const modal = selected && (
+    <TaskDetailModal
+      key={`${selected.id}-${selected.register}`}
+      taskId={selected.id}
+      startRegistering={selected.register}
+      onClose={() => setSelected(undefined)}
+    />
+  );
 
   if (mode === 'list') {
     return (
@@ -106,7 +117,10 @@ export function TasksPage() {
               <span>
                 Tempo dedicado: <strong>{totalHours(task).toLocaleString('pt-BR')} h</strong>
               </span>
-              <Button variant="secondary" onClick={() => setSelectedId(task.id)}>
+              <Button
+                variant="secondary"
+                onClick={() => setSelected({ id: task.id, register: true })}
+              >
                 Registrar tempo
               </Button>
             </>
@@ -131,7 +145,7 @@ export function TasksPage() {
 
       <section className="tasks-layout">
         <aside className="task-list-column">
-          <TaskList tasks={filtered} onSelect={setSelectedId} />
+          <TaskList tasks={filtered} onSelect={openDetails} />
         </aside>
 
         <div className="calendar-column">
@@ -140,7 +154,11 @@ export function TasksPage() {
               <CalendarDays /> Agosto de 2026
             </h2>
 
-            <Button variant="icon" onClick={() => setFilterOpen((v) => !v)} aria-label="Filtrar tarefas">
+            <Button
+              variant="icon"
+              onClick={() => setFilterOpen((v) => !v)}
+              aria-label="Filtrar tarefas"
+            >
               <Filter />
             </Button>
           </header>
@@ -164,9 +182,9 @@ export function TasksPage() {
             ))}
           </FilterPanel>
           {mode === 'monthly' ? (
-            <TaskCalendar tasks={filtered} onSelect={setSelectedId} />
+            <TaskCalendar tasks={filtered} onSelect={openDetails} />
           ) : (
-            <TaskGantt tasks={filtered} onSelect={setSelectedId} />
+            <TaskGantt tasks={filtered} onSelect={openDetails} />
           )}
         </div>
       </section>
