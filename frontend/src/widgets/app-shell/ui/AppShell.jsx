@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { createElement, useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import {
   BriefcaseBusiness,
@@ -51,13 +51,8 @@ export function AppShell({ children }) {
         </div>
         <nav aria-label="Menu principal">
           {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              onClick={close}
-              className={({ isActive }) => (isActive ? 'nav-active' : '')}
-            >
-              <Icon size={20} />
+            <NavLink key={to} to={to} onClick={close} className={({ isActive }) => (isActive ? 'nav-active' : '')}>
+              {createElement(Icon, { size: 20 })}
               <span>{label}</span>
             </NavLink>
           ))}
