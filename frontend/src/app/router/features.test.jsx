@@ -291,6 +291,32 @@ describe('Cadastros', () => {
     expect(screen.getByLabelText('Nome')).toHaveAttribute('placeholder');
   });
 
+  it('Cadastro de cliente tem o campo Bairro e mostra no endereço', () => {
+    renderAt('/add-cliente-pessoa-fisica');
+    expect(screen.getByLabelText('Bairro')).toHaveAttribute('placeholder');
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Paula' } });
+    fireEvent.change(screen.getByLabelText('Logradouro'), { target: { value: 'Rua Harmonia' } });
+    fireEvent.change(screen.getByLabelText('Número'), { target: { value: '74' } });
+    fireEvent.change(screen.getByLabelText('Bairro'), { target: { value: 'Vila Madalena' } });
+    fireEvent.change(screen.getByLabelText('Cidade'), { target: { value: 'São Paulo' } });
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'SP' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar cliente' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Ver mais/ })[0]);
+    expect(screen.getByText('Rua Harmonia, 74 — Vila Madalena, São Paulo-SP')).toBeInTheDocument();
+  });
+
+  it('Cadastro de projeto tem o campo Bairro e mostra no local', () => {
+    renderAt('/add-projeto');
+    expect(screen.getByLabelText('Bairro')).toHaveAttribute('placeholder');
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Loft Centro' } });
+    fireEvent.change(screen.getByLabelText('Bairro'), { target: { value: 'Pinheiros' } });
+    fireEvent.change(screen.getByLabelText('Cidade'), { target: { value: 'São Paulo' } });
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'SP' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar projeto' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Ver mais/ })[0]);
+    expect(screen.getByText('Pinheiros, São Paulo-SP')).toBeInTheDocument();
+  });
+
   it('Cliente PJ tem campo de observação', () => {
     renderAt('/add-cliente-juridica');
     expect(screen.getByLabelText('Observação')).toBeInTheDocument();
