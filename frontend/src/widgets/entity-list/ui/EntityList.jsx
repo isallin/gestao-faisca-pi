@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { Button, FilterPanel, PageHeader } from '@/shared/ui';
-import { ALL, applyFilters, initialFilterValues } from '../lib/filters';
+import { applyFilters, initialFilterValues } from '../lib/filters';
+import { FilterFields } from './FilterFields';
 import './EntityList.css';
 
 /**
@@ -78,22 +79,7 @@ export function EntityList({
               placeholder={`Buscar em ${title.toLowerCase()}`}
             />
           </label>
-          {filters.map((filter) => (
-            <label key={filter.key}>
-              {filter.label}
-              <select
-                className="input"
-                value={values[filter.key] ?? ALL}
-                onChange={(e) => changeFilter(filter.key, e.target.value)}
-              >
-                {filter.options.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ))}
+          <FilterFields filters={filters} values={values} onChange={changeFilter} />
         </FilterPanel>
       )}
 
