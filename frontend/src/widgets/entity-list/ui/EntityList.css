@@ -15,6 +15,7 @@
 .entity-detail { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 28px; }
 .entity-detail > .btn { position: absolute; right: 62px; top: 4px; }
 .entity-detail p { margin: 3px 0; }
+.entity-detail-footer { grid-column: 1 / -1; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .empty { text-align: center; color: var(--muted-foreground); padding: 48px; }
 
 @media (max-width: 1100px) {

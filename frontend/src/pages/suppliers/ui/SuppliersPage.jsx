@@ -29,6 +29,7 @@ export function SuppliersPage() {
       columns={COLUMNS}
       detail={detail}
       onAdd={() => navigate('/add-fornecedor')}
+      onEdit={(supplier) => navigate(`/editar-fornecedor/${supplier.id}`)}
     />
   );
 }

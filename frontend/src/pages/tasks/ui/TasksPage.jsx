@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarDays, Filter } from 'lucide-react';
-import { useTasks } from '@/entities/task';
+import { useProjects } from '@/entities/project';
+import { formatDate, sortTasks, totalHours, useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { Button, FilterPanel, Segmented } from '@/shared/ui';
+import { ALL, applyFilters, EntityList, initialFilterValues } from '@/widgets/entity-list';
 import { TaskCalendar } from './TaskCalendar';
+import { TaskDetailModal } from './TaskDetailModal';
 import { TaskGantt } from './TaskGantt';
 import { TaskList } from './TaskList';
 import './TasksPage.css';
@@ -12,34 +15,137 @@ import './TasksPage.css';
 const MODES = [
   { value: 'monthly', label: 'Mensal' },
   { value: 'weekly', label: 'Semanal' },
+  { value: 'list', label: 'Lista' },
 ];
+
+const STATUSES = ['Pendente', 'Em andamento', 'Concluído'];
+const PRIORITIES = ['Crítica', 'Alta', 'Média', 'Baixa'];
+
+const optionsOf = (values, allLabel) => [
+  { value: ALL, label: allLabel },
+  ...values.map((v) => ({ value: v, label: v })),
+];
+
+const COLUMNS = [
+  { key: 'name', label: 'Tarefa' },
+  { key: 'project', label: 'Projeto' },
+  { key: 'period', label: 'Prazo', render: (t) => `${formatDate(t.start)} a ${formatDate(t.end)}` },
+];
+
+const detail = (task) => {
+  const done = (task.checklist ?? []).filter((i) => i.done).length;
+  return [
+    { label: 'Responsável', value: task.member },
+    { label: 'Status', value: task.status },
+    { label: 'Prioridade', value: task.priority },
+    { label: 'Categoria', value: task.category },
+    {
+      label: 'Checklist',
+      value: task.checklist?.length ? `${done} de ${task.checklist.length} concluídos` : '',
+    },
+    { label: 'Observações', value: task.note },
+  ];
+};
 
 export function TasksPage() {
   usePageTitle('Tarefas');
   const navigate = useNavigate();
   const { items: tasks } = useTasks();
+  const { items: projects } = useProjects();
   const [mode, setMode] = useState('monthly');
   const [filterOpen, setFilterOpen] = useState(false);
-  const [status, setStatus] = useState('Todos');
+  const [selected, setSelected] = useState();
+  const openDetails = (id) => setSelected({ id, register: false });
 
-  const filtered = useMemo(
-    () => (status === 'Todos' ? tasks : tasks.filter((t) => t.status === status)),
-    [tasks, status],
+  const filters = useMemo(
+    () => [
+      {
+        key: 'status',
+        label: 'Status',
+        options: optionsOf(STATUSES, 'Todos'),
+        match: (task, value) => task.status === value,
+      },
+      {
+        key: 'project',
+        label: 'Projeto',
+        options: optionsOf([...new Set(projects.map((p) => p.code))], 'Todos os projetos'),
+        match: (task, value) => task.project === value,
+      },
+      {
+        key: 'priority',
+        label: 'Prioridade',
+        options: optionsOf(PRIORITIES, 'Todas'),
+        match: (task, value) => task.priority === value,
+      },
+    ],
+    [projects],
   );
+  const [values, setValues] = useState(() => initialFilterValues(filters));
+  const changeFilter = (key, value) => setValues((v) => ({ ...v, [key]: value }));
+
+  // Ordem das listas: data de início e, em seguida, prioridade.
+  const sorted = useMemo(() => sortTasks(tasks), [tasks]);
+  const filtered = useMemo(() => applyFilters(sorted, filters, values), [sorted, filters, values]);
+
+  const modeSwitch = <Segmented options={MODES} value={mode} onChange={setMode} />;
+  const modal = selected && (
+    <TaskDetailModal
+      key={`${selected.id}-${selected.register}`}
+      taskId={selected.id}
+      startRegistering={selected.register}
+      onClose={() => setSelected(undefined)}
+    />
+  );
+
+  if (mode === 'list') {
+    return (
+      <>
+        <EntityList
+          title="Tarefas"
+          addLabel="Adicionar Tarefa"
+          rows={sorted}
+          columns={COLUMNS}
+          detail={detail}
+          onAdd={() => navigate('/add-tarefa')}
+          onEdit={(task) => navigate(`/editar-tarefa/${task.id}`)}
+          filters={filters}
+          filterValues={values}
+          onFilterChange={changeFilter}
+          headerExtra={modeSwitch}
+          detailFooter={(task) => (
+            <>
+              <span>
+                Tempo dedicado: <strong>{totalHours(task).toLocaleString('pt-BR')} h</strong>
+              </span>
+              <Button
+                variant="secondary"
+                onClick={() => setSelected({ id: task.id, register: true })}
+              >
+                Registrar tempo
+              </Button>
+            </>
+          )}
+        />
+        {modal}
+      </>
+    );
+  }
 
   return (
     <>
       <header className="tasks-head">
         <h1>Tarefas</h1>
-        <Segmented options={MODES} value={mode} onChange={setMode} />
+        <div className="tasks-button">
+          <Button variant="secondary" onClick={() => navigate('/add-tarefa')}>
+            + Adicionar Tarefa
+          </Button>
+          {modeSwitch}
+        </div>
       </header>
 
       <section className="tasks-layout">
         <aside className="task-list-column">
-          <Button variant="secondary" onClick={() => navigate('/add-tarefa')}>
-            + Adicionar Tarefa
-          </Button>
-          <TaskList tasks={filtered} />
+          <TaskList tasks={filtered} onSelect={openDetails} />
         </aside>
 
         <div className="calendar-column">
@@ -47,38 +153,42 @@ export function TasksPage() {
             <h2>
               <CalendarDays /> Agosto de 2026
             </h2>
-            <Button variant="icon" onClick={() => setFilterOpen((v) => !v)} aria-label="Filtrar tarefas">
+
+            <Button
+              variant="icon"
+              onClick={() => setFilterOpen((v) => !v)}
+              aria-label="Filtrar tarefas"
+            >
               <Filter />
             </Button>
           </header>
 
-          {mode === 'monthly' ? <TaskCalendar tasks={filtered} /> : <TaskGantt tasks={filtered} />}
-
           <FilterPanel open={filterOpen}>
-            <label>
-              Status
-              <select className="input" value={status} onChange={(e) => setStatus(e.target.value)}>
-                <option>Todos</option>
-                <option>Pendente</option>
-                <option>Em andamento</option>
-                <option>Concluído</option>
-              </select>
-            </label>
-            <label>
-              Projeto
-              <select className="input">
-                <option>Todos os projetos</option>
-              </select>
-            </label>
-            <label>
-              Prioridade
-              <select className="input">
-                <option>Todas</option>
-              </select>
-            </label>
+            {filters.map((filter) => (
+              <label key={filter.key}>
+                {filter.label}
+                <select
+                  className="input"
+                  value={values[filter.key]}
+                  onChange={(e) => changeFilter(filter.key, e.target.value)}
+                >
+                  {filter.options.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ))}
           </FilterPanel>
+          {mode === 'monthly' ? (
+            <TaskCalendar tasks={filtered} onSelect={openDetails} />
+          ) : (
+            <TaskGantt tasks={filtered} onSelect={openDetails} />
+          )}
         </div>
       </section>
+      {modal}
     </>
   );
 }
