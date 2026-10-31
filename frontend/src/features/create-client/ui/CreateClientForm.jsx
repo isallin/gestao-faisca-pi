@@ -55,7 +55,7 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
     const record = {
       name,
       type: isPerson ? 'Pessoa Física' : 'Pessoa Jurídica',
-      address: `${data.street}, ${data.number} — ${data.city}-${data.state}`,
+      address: `${data.street}, ${data.number} — ${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`,
       phone: data.phone,
       email: data.email,
       note: data.note ?? '',
