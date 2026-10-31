@@ -5,7 +5,13 @@ import { useProjects } from '@/entities/project';
 import { formatDate, sortTasks, totalHours, useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { Button, FilterPanel, Segmented } from '@/shared/ui';
-import { ALL, applyFilters, EntityList, initialFilterValues } from '@/widgets/entity-list';
+import {
+  ALL,
+  applyFilters,
+  EntityList,
+  FilterFields,
+  initialFilterValues,
+} from '@/widgets/entity-list';
 import { TaskCalendar } from './TaskCalendar';
 import { TaskDetailModal } from './TaskDetailModal';
 import { TaskGantt } from './TaskGantt';
@@ -164,22 +170,7 @@ export function TasksPage() {
           </header>
 
           <FilterPanel open={filterOpen}>
-            {filters.map((filter) => (
-              <label key={filter.key}>
-                {filter.label}
-                <select
-                  className="input"
-                  value={values[filter.key]}
-                  onChange={(e) => changeFilter(filter.key, e.target.value)}
-                >
-                  {filter.options.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            ))}
+            <FilterFields filters={filters} values={values} onChange={changeFilter} />
           </FilterPanel>
           {mode === 'monthly' ? (
             <TaskCalendar tasks={filtered} onSelect={openDetails} />

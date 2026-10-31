@@ -13,8 +13,28 @@ const renderAt = (path) =>
   );
 
 const openFilters = () => fireEvent.click(screen.getByRole('button', { name: /filtrar/i }));
-const select = (label, value) =>
-  fireEvent.change(screen.getByLabelText(label), { target: { value } });
+
+// Filtros de múltipla escolha (checkboxes): abre o filtro, marca só os valores pedidos e fecha.
+const filterGroup = (label) => {
+  fireEvent.click(
+    screen.getByRole('button', { name: new RegExp(`^${label.replace('?', '\\?')} `) }),
+  );
+  return screen.getByRole('group', { name: label });
+};
+const closeFilter = () => fireEvent.mouseDown(document.body);
+const choose = (label, ...values) => {
+  const group = filterGroup(label);
+  const all = within(group).getByRole('checkbox', { name: '(Selecionar tudo)' });
+  for (let i = 0; i < 2 && (all.checked || all.indeterminate); i += 1) fireEvent.click(all);
+  values.forEach((value) => fireEvent.click(within(group).getByRole('checkbox', { name: value })));
+  closeFilter();
+};
+const clearFilter = (label) => {
+  const group = filterGroup(label);
+  const all = within(group).getByRole('checkbox', { name: '(Selecionar tudo)' });
+  if (!all.checked) fireEvent.click(all);
+  closeFilter();
+};
 
 describe('Tarefas', () => {
   it('ordena por data e, em empate, por prioridade', () => {
@@ -29,11 +49,11 @@ describe('Tarefas', () => {
   it('filtra por projeto e prioridade', () => {
     renderAt('/tarefa');
     openFilters();
-    select('Projeto', 'COM-011');
+    choose('Projeto', 'COM-011');
     const list = document.querySelector('.task-list');
     expect(within(list).queryByText('Revisar planta de iluminação')).toBeNull();
     expect(within(list).getByText('Atualizar orçamento geral')).toBeInTheDocument();
-    select('Prioridade', 'Alta');
+    choose('Prioridade', 'Alta');
     expect(within(list).queryByText('Atualizar orçamento geral')).toBeNull();
     expect(within(list).getByText('Enviar prancha para prefeitura')).toBeInTheDocument();
   });
@@ -122,7 +142,7 @@ describe('Tarefas', () => {
     expect(within(list).getByText('2,5 h')).toBeInTheDocument();
 
     openFilters();
-    select('Projeto', 'COM-011');
+    choose('Projeto', 'COM-011');
     expect(within(list).queryByText('Revisar planta de iluminação')).toBeNull();
     expect(within(list).getByText('Atualizar orçamento geral')).toBeInTheDocument();
     fireEvent.click(within(list).getByRole('button', { name: /Ver mais/ }));
@@ -166,24 +186,80 @@ describe('Tarefas', () => {
 });
 
 describe('Listas', () => {
+  it('Tarefas: permite marcar mais de uma prioridade no mesmo filtro', () => {
+    renderAt('/tarefa');
+    openFilters();
+    const list = document.querySelector('.task-list');
+    choose('Prioridade', 'Alta', 'Crítica');
+    expect(within(list).getByText('Revisar planta de iluminação')).toBeInTheDocument(); // Alta
+    expect(within(list).getByText('Conferir medição da marcenaria')).toBeInTheDocument(); // Crítica
+    expect(within(list).queryByText('Aprovar amostras de madeira')).toBeNull(); // Média
+    expect(within(list).queryByText('Montar apresentação do conceito')).toBeNull(); // Baixa
+    expect(screen.getByRole('button', { name: /^Prioridade Crítica, Alta$/ })).toBeInTheDocument();
+    clearFilter('Prioridade');
+    expect(within(list).getByText('Aprovar amostras de madeira')).toBeInTheDocument();
+  });
+
+  it('Filtros: desmarcar tudo não mostra nada e "Selecionar tudo" restaura', () => {
+    renderAt('/projetos');
+    openFilters();
+    const group = filterGroup('Status');
+    fireEvent.click(within(group).getByRole('checkbox', { name: '(Selecionar tudo)' }));
+    expect(screen.getByText(/Nenhum\(a\) projetos encontrado\(a\)/)).toBeInTheDocument();
+    fireEvent.click(within(group).getByRole('checkbox', { name: '(Selecionar tudo)' }));
+    expect(screen.getByText('Casa Paineiras')).toBeInTheDocument();
+  });
+
   it('Clientes: filtra por tipo e por projeto ativo', () => {
     renderAt('/clientes');
     openFilters();
-    select('Tipo de cliente', 'Pessoa Jurídica');
+    choose('Tipo de cliente', 'Pessoa Jurídica');
     expect(screen.queryByText('Renata Siqueira')).toBeNull();
     expect(screen.getByText('Ateliê Aurora Ltda.')).toBeInTheDocument();
-    select('Tipo de cliente', 'all');
-    select('Projeto ativo', 'yes');
+    clearFilter('Tipo de cliente');
+    choose('Projeto ativo', 'Com projeto ativo');
     expect(screen.queryByText('Renata Siqueira')).toBeNull(); // INT-032 está "Aguardando"
     expect(screen.queryByText('Grupo Horizonte')).toBeNull(); // COR-008 concluído
     expect(screen.getByText('Marina e Lucas Almeida')).toBeInTheDocument();
+  });
+
+  it('Fornecedores: filtra por categoria, cidade, projeto e "já trabalhei"', () => {
+    renderAt('/fornecedores');
+    openFilters();
+
+    choose('Categoria', 'Marcenaria', 'Iluminação');
+    expect(screen.getByText('Madeira Viva')).toBeInTheDocument();
+    expect(screen.getByText('Lume Iluminação')).toBeInTheDocument();
+    expect(screen.queryByText('Pedra & Forma')).toBeNull();
+    clearFilter('Categoria');
+
+    choose('Cidade', 'Cotia', 'Campinas');
+    expect(screen.getByText('Pedra & Forma')).toBeInTheDocument();
+    expect(screen.getByText('Verde Traço')).toBeInTheDocument();
+    expect(screen.queryByText('Madeira Viva')).toBeNull();
+    clearFilter('Cidade');
+
+    choose('Já trabalhei?', 'Não');
+    expect(screen.getByText('Verde Traço')).toBeInTheDocument();
+    expect(screen.queryByText('Madeira Viva')).toBeNull();
+    clearFilter('Já trabalhei?');
+
+    choose('Projeto', 'RES-024');
+    expect(screen.getByText('Madeira Viva')).toBeInTheDocument();
+    expect(screen.getByText('Pedra & Forma')).toBeInTheDocument();
+    expect(screen.queryByText('Lume Iluminação')).toBeNull();
+
+    // filtros diferentes se combinam (E): RES-024 + categoria Marmoraria
+    choose('Categoria', 'Marmoraria');
+    expect(screen.getByText('Pedra & Forma')).toBeInTheDocument();
+    expect(screen.queryByText('Madeira Viva')).toBeNull();
   });
 
   it('Projetos: filtra concluídos; cliente só na visão expandida', () => {
     renderAt('/projetos');
     expect(screen.queryByText('Cliente')).toBeNull();
     openFilters();
-    select('Status', 'Concluído');
+    choose('Status', 'Concluído');
     expect(screen.getByText('Corporativo Horizonte')).toBeInTheDocument();
     expect(screen.queryByText('Casa Paineiras')).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: /Ver mais/ }));
@@ -213,6 +289,32 @@ describe('Cadastros', () => {
     renderAt('/add-colaborador');
     expect(screen.getByRole('heading', { name: 'Novo Colaborador' })).toBeInTheDocument();
     expect(screen.getByLabelText('Nome')).toHaveAttribute('placeholder');
+  });
+
+  it('Cadastro de cliente tem o campo Bairro e mostra no endereço', () => {
+    renderAt('/add-cliente-pessoa-fisica');
+    expect(screen.getByLabelText('Bairro')).toHaveAttribute('placeholder');
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Paula' } });
+    fireEvent.change(screen.getByLabelText('Logradouro'), { target: { value: 'Rua Harmonia' } });
+    fireEvent.change(screen.getByLabelText('Número'), { target: { value: '74' } });
+    fireEvent.change(screen.getByLabelText('Bairro'), { target: { value: 'Vila Madalena' } });
+    fireEvent.change(screen.getByLabelText('Cidade'), { target: { value: 'São Paulo' } });
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'SP' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar cliente' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Ver mais/ })[0]);
+    expect(screen.getByText('Rua Harmonia, 74 — Vila Madalena, São Paulo-SP')).toBeInTheDocument();
+  });
+
+  it('Cadastro de projeto tem o campo Bairro e mostra no local', () => {
+    renderAt('/add-projeto');
+    expect(screen.getByLabelText('Bairro')).toHaveAttribute('placeholder');
+    fireEvent.change(screen.getByLabelText('Nome'), { target: { value: 'Loft Centro' } });
+    fireEvent.change(screen.getByLabelText('Bairro'), { target: { value: 'Pinheiros' } });
+    fireEvent.change(screen.getByLabelText('Cidade'), { target: { value: 'São Paulo' } });
+    fireEvent.change(screen.getByLabelText('Estado'), { target: { value: 'SP' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar projeto' }));
+    fireEvent.click(screen.getAllByRole('button', { name: /Ver mais/ })[0]);
+    expect(screen.getByText('Pinheiros, São Paulo-SP')).toBeInTheDocument();
   });
 
   it('Cliente PJ tem campo de observação', () => {

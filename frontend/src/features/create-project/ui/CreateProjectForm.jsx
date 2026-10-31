@@ -41,7 +41,7 @@ export function CreateProjectForm({ onClose, project }) {
       client: data.client,
       status: data.status,
       stage: data.stage,
-      address: `${data.city}-${data.state}`,
+      address: `${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`,
       note: data.note,
       details: data,
     };
