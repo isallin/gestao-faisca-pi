@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { useClients } from '@/entities/client';
+import { getAuthToken } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import {
   AddressFields,
@@ -45,26 +47,94 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
   const isPerson = type === 'pf';
   const d = detailsOf(client);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
     const name = isPerson ? `${data.name} ${data.last}`.trim() : data.company;
 
     if (!name) return setError('Informe o nome do cliente para continuar.');
 
-    const record = {
-      name,
-      type: isPerson ? 'Pessoa Física' : 'Pessoa Jurídica',
-      address: `${data.street}, ${data.number} — ${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`,
-      phone: data.phone,
+    if (isEditing) {
+      const record = {
+        name,
+        type: isPerson ? 'Pessoa Física' : 'Pessoa Jurídica',
+        address: `${data.street}, ${data.number} — ${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`,
+        phone: data.phone,
+        email: data.email,
+        note: data.note ?? '',
+        details: data,
+      };
+
+      update(client.id, record);
+      onClose();
+      return;
+    }
+
+    const shouldSendRepresentative = Boolean(
+      data.repName || data.repCpf || data.repRole || data.repEmail || data.repPhone,
+    );
+
+    const payload = {
+      tipo: isPerson ? 'PF' : 'PJ',
       email: data.email,
-      note: data.note ?? '',
-      details: data,
+      telefone: data.phone,
+      observacao: data.note,
+      cep: data.zip,
+      logradouro: data.street,
+      numero: data.number,
+      complemento: data.complement,
+      bairro: data.neighborhood,
+      cidade: data.city,
+      estado: data.state,
+      pais: data.country || 'Brasil',
+      ...(isPerson
+        ? {
+            nome: name,
+            cpf: data.cpf,
+            rg: data.rg,
+            dataNascimento: data.birth || null,
+            estadoCivil: data.marital,
+            profissao: data.job,
+          }
+        : {
+            nomeFantasia: data.company,
+            cnpj: data.cnpj,
+            representantes: shouldSendRepresentative
+              ? [
+                  {
+                    nomeCompleto: data.repName,
+                    cpf: data.repCpf,
+                    cargo: data.repRole,
+                    email: data.repEmail,
+                    telefone: data.repPhone,
+                  },
+                ]
+              : null,
+          }),
     };
 
-    if (isEditing) update(client.id, record);
-    else add({ id: Date.now(), projects: '—', ...record });
-    onClose();
+    setError('');
+
+    if (!getAuthToken()) {
+      add(payload);
+      onClose();
+      return;
+    }
+
+    try {
+      await add(payload);
+      onClose();
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError) && requestError.response?.status === 409) {
+        setError('Ja existe um cliente com este documento (CPF/CNPJ).');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
+        setError('Dados invalidos. Revise os campos obrigatorios e tente novamente.');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 401) {
+        setError('Sessao expirada. Faca login novamente.');
+      } else {
+        setError('Nao foi possivel salvar o cliente no momento.');
+      }
+    }
   };
 
   return (

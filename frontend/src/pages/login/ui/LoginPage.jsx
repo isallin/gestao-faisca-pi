@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '@/shared/assets/faisca-logo.png';
+import { login } from '@/shared/api/auth';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { Button, Field, FormAlert } from '@/shared/ui';
 import './LoginPage.css';
@@ -11,14 +13,34 @@ export function LoginPage() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
-    if (!form.get('email') || !form.get('password')) {
+
+    const email = String(form.get('email') ?? '').trim();
+    const senha = String(form.get('senha') ?? '');
+
+    if (!email || !senha) {
       return setError('Preencha e-mail e senha para continuar.');
     }
-    navigate('/dashboard');
+
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      await login({ email, senha });
+      navigate('/dashboard');
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError) && requestError.response?.status === 401) {
+        setError('E-mail ou senha inválidos.');
+      } else {
+        setError('Nao foi possivel entrar no momento. Verifique a conexao com o servidor.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,7 +68,7 @@ export function LoginPage() {
             <div className="password-field">
               <input
                 className="input"
-                name="password"
+                name="senha"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Digite sua senha"
               />
@@ -67,10 +89,10 @@ export function LoginPage() {
           >
             Esqueceu a senha?
           </button>
-          <Button variant="pill" type="submit">
-            Entrar
+          <Button variant="pill" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Entrando...' : 'Entrar'}
           </Button>
-          <p className="demo-note">Para esta demonstração, use qualquer e-mail e senha.</p>
+          <p className="demo-note">Use o mesmo e-mail e senha cadastrados no backend.</p>
         </form>
       </section>
     </main>

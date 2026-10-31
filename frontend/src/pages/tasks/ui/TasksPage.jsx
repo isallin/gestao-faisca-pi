@@ -56,7 +56,7 @@ const detail = (task) => {
 export function TasksPage() {
   usePageTitle('Tarefas');
   const navigate = useNavigate();
-  const { items: tasks } = useTasks();
+  const { items: tasks, isLoading, error, reload } = useTasks();
   const { items: projects } = useProjects();
   const [mode, setMode] = useState('monthly');
   const [filterOpen, setFilterOpen] = useState(false);
@@ -142,6 +142,9 @@ export function TasksPage() {
       <header className="tasks-head">
         <h1>Tarefas</h1>
         <div className="tasks-button">
+          <Button variant="ghost" onClick={reload}>
+            Recarregar
+          </Button>
           <Button variant="secondary" onClick={() => navigate('/add-tarefa')}>
             + Adicionar Tarefa
           </Button>
@@ -172,6 +175,8 @@ export function TasksPage() {
           <FilterPanel open={filterOpen}>
             <FilterFields filters={filters} values={values} onChange={changeFilter} />
           </FilterPanel>
+          {!isLoading && error && <p className="task-empty">{error}</p>}
+          {isLoading && <p className="task-empty">Carregando tarefas...</p>}
           {mode === 'monthly' ? (
             <TaskCalendar tasks={filtered} onSelect={openDetails} />
           ) : (
