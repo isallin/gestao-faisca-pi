@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useClients } from '@/entities/client';
 import { useProjects } from '@/entities/project';
 import { usePageTitle } from '@/shared/lib/use-page-title';
+import { Button } from '@/shared/ui';
 import { ALL, EntityList } from '@/widgets/entity-list';
 
 const COLUMNS = [
@@ -33,7 +34,7 @@ const detail = (client) => [
 export function ClientsPage() {
   usePageTitle('Clientes');
   const navigate = useNavigate();
-  const { items } = useClients();
+  const { items, isLoading, error, reload } = useClients();
   const { items: projects } = useProjects();
 
   // Cliente com projeto ativo: algum código em "projects" pertence a um projeto em andamento.
@@ -67,6 +68,16 @@ export function ClientsPage() {
       onAdd={() => navigate('/add-cliente-pessoa-fisica')}
       onEdit={(client) => navigate(`/editar-cliente/${client.id}`)}
       filters={filters}
+      headerExtra={
+        <Button variant="ghost" onClick={reload}>
+          Recarregar
+        </Button>
+      }
+      emptyMessage={
+        isLoading
+          ? 'Carregando clientes...'
+          : error || 'Nenhum cliente encontrado.'
+      }
     />
   );
 }

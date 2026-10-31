@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { Plus, X } from 'lucide-react';
 import { useClients } from '@/entities/client';
 import { useCollaborators } from '@/entities/collaborator';
 import { useProjects } from '@/entities/project';
 import { TASK_PRIORITIES, useTasks } from '@/entities/task';
+import { getAuthToken } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import {
   Button,
@@ -30,12 +32,14 @@ export function CreateTaskForm({ onClose, task }) {
   const [checklist, setChecklist] = useState(task?.checklist ?? []);
   const isEditing = Boolean(task);
   const statuses = isEditing ? ['Pendente', 'Em andamento', 'Concluído'] : ['Pendente', 'Em andamento'];
+  const categoryOptions = tasks.categories.length > 0 ? tasks.categories.map((item) => item.nome) : CATEGORIES;
+  const phaseOptions = tasks.phases.length > 0 ? tasks.phases.map((item) => item.nome) : STAGES;
 
   const addItem = () => setChecklist((list) => [...list, { id: Date.now(), text: '', done: false }]);
   const changeItem = (id, text) => setChecklist((list) => list.map((i) => (i.id === id ? { ...i, text } : i)));
   const removeItem = (id) => setChecklist((list) => list.filter((i) => i.id !== id));
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
 
@@ -44,15 +48,68 @@ export function CreateTaskForm({ onClose, task }) {
       return setError('Não foi possível salvar: a data de término não pode ser anterior à de início.');
     }
 
+    const project = projects.find((item) => item.code === data.project);
+    const client = clients.find((item) => item.name === data.client);
+    const category = tasks.categories.find((item) => item.nome === data.category);
+    const phase = tasks.phases.find((item) => item.nome === data.stage);
+
+    const payload = {
+      projetoId: project?.id,
+      clienteId: client?.id ?? project?.clientId,
+      categoriaId: category?.id,
+      fkTarefaFase: phase?.id,
+      nome: data.name,
+      prioridade: data.priority,
+      dataInicioPrev: data.start ? `${data.start}T00:00:00` : '',
+      dataFimPrev: data.end ? `${data.end}T00:00:00` : '',
+      dataInicioReal: null,
+      dataFimReal: null,
+      observacao: data.note,
+      status: data.status,
+      project: data.project,
+      member: data.member,
+      category: data.category,
+      stage: data.stage,
+      checklist: checklist.filter((i) => i.text.trim()),
+    };
+
     const record = {
       ...data,
       done: data.status === 'Concluído',
       checklist: checklist.filter((i) => i.text.trim()),
     };
 
-    if (isEditing) tasks.update(task.id, record);
-    else tasks.add({ id: Date.now(), ...record });
-    onClose();
+    if (isEditing) {
+      tasks.update(task.id, record);
+      onClose();
+      return;
+    }
+
+    setError('');
+
+    if (!getAuthToken()) {
+      tasks.add(payload);
+      onClose();
+      return;
+    }
+
+    if (!payload.projetoId || !payload.categoriaId || !payload.fkTarefaFase) {
+      setError('Selecione projeto, categoria e etapa validos para salvar no backend.');
+      return;
+    }
+
+    try {
+      await tasks.add(payload);
+      onClose();
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
+        setError('Dados invalidos. Verifique datas e campos obrigatorios.');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
+        setError('Projeto, categoria ou fase nao encontrado(a) no backend.');
+      } else {
+        setError('Nao foi possivel salvar a tarefa no momento.');
+      }
+    }
   };
 
   return (
@@ -67,10 +124,10 @@ export function CreateTaskForm({ onClose, task }) {
               <option value="">Selecione</option>
             </SelectField>
             <SelectField label="Projeto" name="project" options={projects.map((p) => p.code)} defaultValue={task?.project} />
-            <SelectField label="Etapa" name="stage" options={STAGES} defaultValue={task?.stage} />
+            <SelectField label="Etapa" name="stage" options={phaseOptions} defaultValue={task?.stage} />
             <SelectField label="Status" name="status" options={statuses} defaultValue={task?.status} />
             <SelectField label="Prioridade" name="priority" options={TASK_PRIORITIES} defaultValue={task?.priority} />
-            <SelectField label="Categoria" name="category" options={CATEGORIES} defaultValue={task?.category} />
+            <SelectField label="Categoria" name="category" options={categoryOptions} defaultValue={task?.category} />
           </div>
           <div>
             <Field label="Data de início" name="start" type="date" defaultValue={task?.start} />
