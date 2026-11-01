@@ -5,6 +5,17 @@ import com.faisca.backend.cliente.ClienteRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
+@Tag(
+        name = "Projetos",
+        description = "Endpoints para gerenciamento dos projetos do escritório de arquitetura"
+)
+@SecurityRequirement(name = "bearerAuth")
 
 @RestController
 @RequestMapping("/api/projetos")
@@ -19,6 +30,29 @@ public class ProjetoController {
         this.projetoRepository = projetoRepository;
         this.clienteRepository = clienteRepository;
     }
+
+    @Operation(
+            summary = "Cadastrar projeto",
+            description = "Cadastra um novo projeto vinculado a um cliente existente."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Projeto cadastrado com sucesso"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados inválidos ou data de fim anterior à data de início"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Cliente não encontrado"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Usuário não autenticado"
+            )
+    })
 
     @PostMapping
     public ResponseEntity<ProjetoResponse> cadastrar(
