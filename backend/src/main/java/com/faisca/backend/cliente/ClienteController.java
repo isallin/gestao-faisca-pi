@@ -4,10 +4,20 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 
 import java.util.ArrayList;
 import java.util.List;
-
+@Tag(
+        name = "Clientes",
+        description = "Endpoints para gerenciamento de clientes do escritório de arquitetura"
+)
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/clientes")
 @CrossOrigin(origins = {"http://localhost:5173", "http://localhost:3000"})
@@ -19,6 +29,20 @@ public class ClienteController {
     }
 
     // Página "clients": lista todos os clientes -- Gabriel Medeiros
+    @Operation(
+            summary = "Listar clientes",
+            description = "Retorna todos os clientes cadastrados no sistema."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Clientes listados com sucesso"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Usuário não autenticado"
+            )
+    })
     @GetMapping
     @Transactional(readOnly = true)
     public ResponseEntity<List<ClienteResponse>> listar() {
@@ -33,6 +57,28 @@ public class ClienteController {
     }
 
     // Página "client-create": cadastra cliente PF ou PJ -- Gabriel Medeiros
+    @Operation(
+    summary = "Cadastrar cliente",
+    description = "Cadastra um novo cliente pessoa física (PF) ou pessoa jurídica (PJ)."
+            )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "Cliente cadastrado com sucesso"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Dados inválidos ou campos obrigatórios não preenchidos"
+            ),
+            @ApiResponse(
+                    responseCode = "409",
+                    description = "CPF ou CNPJ já cadastrado"
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "Usuário não autenticado"
+            )
+    })
     @PostMapping
     public ResponseEntity<ClienteResponse> cadastrar(@RequestBody @Valid ClienteCadastroRequest request) {
         boolean pessoaFisica = request.getTipo().equals("PF");

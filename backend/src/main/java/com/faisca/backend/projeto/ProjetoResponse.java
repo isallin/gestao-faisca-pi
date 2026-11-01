@@ -2,22 +2,38 @@ package com.faisca.backend.projeto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "Dados retornados após o cadastro de um projeto")
 public class ProjetoResponse {
 
+    @Schema(description = "ID do projeto cadastrado", example = "1")
     private final Integer id;
+    @Schema(description = "ID do cliente vinculado ao projeto", example = "1")
     private final Integer clienteId;
+    @Schema(description = "Código do projeto", example = "PROJ001")
     private final String codigo;
+    @Schema(description = "Relação com o proprietário", example = "Proprietário")
     private final String relacaoProprietario;
+    @Schema(description = "Nome do projeto", example = "Reforma de apartamento")
     private final String nome;
+    @Schema(description = "Tipo do imóvel", example = "Apartamento")
     private final String tipoImovel;
+    @Schema(description = "Área em metros quadrados", example = "85.50")
     private final BigDecimal areaM2;
+    @Schema(description = "Número da unidade", example = "Apartamento 42")
     private final String unidadeNumero;
+    @Schema(description = "Nome do condomínio", example = "Residencial Jardim")
     private final String condominio;
+    @Schema(description = "Matrícula do imóvel", example = "123456")
     private final String matricula;
+    @Schema(description = "Data de início", example = "2026-11-01T09:00:00")
     private final LocalDateTime dataInicio;
+    @Schema(description = "Data de término", example = "2027-02-01T18:00:00")
     private final LocalDateTime dataFim;
+    @Schema(description = "Observações", example = "Reforma da cozinha e sala")
     private final String observacao;
+    @Schema(description = "ID da fase vinculada", example = "2")
     private final Integer fkTarefaFase;
 
     public ProjetoResponse(Projeto projeto) {
