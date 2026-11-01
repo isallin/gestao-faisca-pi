@@ -1,12 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { createClient, listClients } from '@/shared/api/client';
 import { getAuthToken } from '@/shared/api/auth';
-import { initialClients } from './mock';
+// import { initialClients } from './mock';
 
 const ClientsContext = createContext(null);
 
 export function ClientsProvider({ children }) {
-  const [items, setItems] = useState(initialClients);
+  const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -38,7 +38,7 @@ export function ClientsProvider({ children }) {
       const records = await listClients();
       setItems(records);
     } catch {
-      setError('Nao foi possivel carregar os clientes. Confira a sessao e tente novamente.');
+      setError('Não foi possível carregar os clientes. Confira a sessão e tente novamente.');
     } finally {
       setIsLoading(false);
     }

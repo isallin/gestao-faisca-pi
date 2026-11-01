@@ -17,6 +17,7 @@ import {
 
 const STATUSES = ['Planejamento', 'Em andamento', 'Aguardando', 'Concluído'];
 const STAGES = ['Estudo preliminar', 'Anteprojeto', 'Projeto legal', 'Executivo', 'Obra', 'Entrega'];
+const PROPERTY = ['Residencial', 'Comercial', 'Industrial', 'Rural', 'Terreno', 'Outro'];
 
 /** Valores iniciais a partir de um projeto existente (edição). */
 function detailsOf(project) {
@@ -47,6 +48,10 @@ export function CreateProjectForm({ onClose, project }) {
     const clientId = Number(data.clientId || project?.clientId || clients[0]?.id || 0);
     const clientName = clients.find((client) => client.id === clientId)?.name ?? project?.client;
     const address = `${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`;
+    if (!data.name) return setError('Preencha o nome da tarefa para continuar.');
+    if (data.end < data.start) {
+      return setError('Não foi possível salvar: a data de término não pode ser anterior à de início.');
+    }
 
     const payload = {
       clienteId: clientId,
@@ -58,8 +63,8 @@ export function CreateProjectForm({ onClose, project }) {
       unidadeNumero: data.number,
       condominio: data.condo,
       matricula: data.registry,
-      dataInicio: null,
-      dataFim: null,
+      dataInicio: data.start ? `${data.start}T00:00:00` : '',
+      dataFim: data.end ? `${data.end}T00:00:00` : '',
       observacao: data.note,
       fkTarefaFase: null,
       status: data.status,
@@ -142,7 +147,9 @@ export function CreateProjectForm({ onClose, project }) {
                 </option>
               ))}
             </SelectField>
-            <Field label="Tipo de imóvel" name="propertyType" placeholder="Ex.: Residência" defaultValue={d.propertyType} />
+            <SelectField label="Tipo de imóvel" name="propertyType" defaultValue={d.propertyType} options={PROPERTY}>
+              <option value="">Selecione...</option>
+            </SelectField>
             <Field label="Metragem (m²)" name="area" placeholder="Ex.: 180" defaultValue={d.area} />
             <Field label="Condomínio" name="condo" placeholder="Nome do condomínio (se houver)" defaultValue={d.condo} />
             <Field label="Matrícula" name="registry" placeholder="Nº da matrícula do imóvel" defaultValue={d.registry} />
@@ -150,8 +157,14 @@ export function CreateProjectForm({ onClose, project }) {
           <AddressFields defaults={d} />
           <div>
             <h3>Status e observação</h3>
-            <SelectField label="Status" name="status" options={STATUSES} defaultValue={project?.status} />
-            <SelectField label="Etapa" name="stage" options={STAGES} defaultValue={project?.stage} />
+            <SelectField label="Status" name="status" options={STATUSES} defaultValue={project?.status}>
+              <option value="">Selecione...</option>
+            </SelectField>
+            <SelectField label="Etapa" name="stage" options={STAGES} defaultValue={project?.stage}>
+              <option value="">Selecione...</option>
+            </SelectField>
+            <Field label="Data de início" name="start" type="date" defaultValue={project?.start} />
+            <Field label="Data do fim" name="end" type="date" defaultValue={project?.end} />
             <Field label="Observação" name="note" textarea placeholder="Informações adicionais sobre o projeto" defaultValue={project?.note} />
             <FormActions label={isEditing ? 'Salvar alterações' : 'Salvar projeto'} onCancel={onClose} />
           </div>

@@ -6,6 +6,7 @@ import { readForm } from '@/shared/lib/read-form';
 import {
   AddressFields,
   Field,
+  SelectField,
   Form,
   FormActions,
   FormAlert,
@@ -89,28 +90,28 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
       pais: data.country || 'Brasil',
       ...(isPerson
         ? {
-            nome: name,
-            cpf: data.cpf,
-            rg: data.rg,
-            dataNascimento: data.birth || null,
-            estadoCivil: data.marital,
-            profissao: data.job,
-          }
+          nome: name,
+          cpf: data.cpf,
+          rg: data.rg,
+          dataNascimento: data.birth || null,
+          estadoCivil: data.marital,
+          profissao: data.job,
+        }
         : {
-            nomeFantasia: data.company,
-            cnpj: data.cnpj,
-            representantes: shouldSendRepresentative
-              ? [
-                  {
-                    nomeCompleto: data.repName,
-                    cpf: data.repCpf,
-                    cargo: data.repRole,
-                    email: data.repEmail,
-                    telefone: data.repPhone,
-                  },
-                ]
-              : null,
-          }),
+          nomeFantasia: data.company,
+          cnpj: data.cnpj,
+          representantes: shouldSendRepresentative
+            ? [
+              {
+                nomeCompleto: data.repName,
+                cpf: data.repCpf,
+                cargo: data.repRole,
+                email: data.repEmail,
+                telefone: data.repPhone,
+              },
+            ]
+            : null,
+        }),
     };
 
     setError('');
@@ -152,7 +153,14 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
                 <Field label="Data de Nascimento" name="birth" type="date" defaultValue={d.birth} />
                 <Field label="RG" name="rg" placeholder="00.000.000-0" defaultValue={d.rg} />
                 <Field label="CPF" name="cpf" placeholder="000.000.000-00" defaultValue={d.cpf} />
-                <Field label="Estado civil" name="marital" placeholder="Ex.: Casada" defaultValue={d.marital} />
+                <SelectField
+                  label="Estado civil"
+                  name="marital"
+                  defaultValue={d.marital}
+                  options={['Solteiro', 'Casado', 'Separado', 'Divorciado', 'Viúvo']}
+                >
+                  <option value="">Selecione...</option>
+                </SelectField>
                 <Field label="Profissão" name="job" placeholder="Ex.: Médica" defaultValue={d.job} />
               </>
             ) : (

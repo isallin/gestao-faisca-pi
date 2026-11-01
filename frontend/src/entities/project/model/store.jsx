@@ -1,12 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getAuthToken } from '@/shared/api/auth';
 import { createProject, listProjects } from '@/shared/api/project';
-import { initialProjects } from './mock';
+// import { initialProjects } from './mock';
 
 const ProjectsContext = createContext(null);
 
 export function ProjectsProvider({ children }) {
-  const [items, setItems] = useState(initialProjects);
+  const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
