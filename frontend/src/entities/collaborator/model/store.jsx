@@ -6,7 +6,7 @@ import { initialCollaborators } from './mock';
 const CollaboratorsContext = createContext(null);
 
 export function CollaboratorsProvider({ children }) {
-  const [items, setItems] = useState(initialCollaborators);
+  const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
