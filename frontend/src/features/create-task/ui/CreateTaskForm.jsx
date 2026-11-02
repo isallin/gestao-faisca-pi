@@ -29,6 +29,7 @@ export function CreateTaskForm({ onClose, task }) {
   const isEditing = Boolean(task);
   const statuses = ['Pendente', 'Em andamento', 'In Hold', 'Concluído', 'Cancelado'];
   const categoryOptions = tasks.categories.map((item) => item.nome);
+  const defaultPhaseId = String(task?.stageId ?? tasks.phases[0]?.id ?? '');
 
   const addItem = () => setChecklist((list) => [...list, { id: Date.now(), text: '', done: false }]);
   const changeItem = (id, text) => setChecklist((list) => list.map((i) => (i.id === id ? { ...i, text } : i)));
@@ -46,7 +47,8 @@ export function CreateTaskForm({ onClose, task }) {
     const project = projects.find((item) => item.code === data.project);
     const client = clients.find((item) => item.name === data.client);
     const category = tasks.categories.find((item) => item.nome === data.category);
-    const phase = tasks.phases.find((item) => item.nome === data.stage);
+    const phaseId = Number(data.phaseId || task?.stageId || tasks.phases[0]?.id || 0) || null;
+    const phaseName = tasks.phases.find((item) => item.id === phaseId)?.nome ?? task?.stage;
     const member = collaborators.find((item) => item.name === data.member);
 
     const payload = {
@@ -54,7 +56,7 @@ export function CreateTaskForm({ onClose, task }) {
       colaboradorId: member?.id ?? null,
       clienteId: client?.id ?? project?.clientId,
       categoriaId: category?.id,
-      fkTarefaFase: phase?.id,
+      fkTarefaFase: phaseId,
       nome: data.name,
       prioridade: data.priority,
       dataInicioPrev: data.start ? `${data.start}T00:00:00` : null,
@@ -66,14 +68,19 @@ export function CreateTaskForm({ onClose, task }) {
       project: data.project,
       member: data.member,
       category: data.category,
-      stage: data.stage,
+      stage: phaseName,
       checklist: checklist.filter((i) => i.text.trim()).map(({ text, done }) => ({ text, done })),
     };
 
     setError('');
 
-    if (!payload.projetoId || !payload.categoriaId || !payload.fkTarefaFase) {
-      setError('Selecione projeto, categoria e etapa válidos para salvar no backend.');
+    if (!payload.projetoId || !payload.categoriaId) {
+      setError('Selecione projeto e categoria válidos para salvar no backend.');
+      return;
+    }
+
+    if (!phaseId) {
+      setError('Selecione uma fase para continuar.');
       return;
     }
 
@@ -128,6 +135,14 @@ export function CreateTaskForm({ onClose, task }) {
               {categoryOptions.map((category) => (
                 <option key={category} value={category}>
                   {category}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Fase" name="phaseId" defaultValue={defaultPhaseId}>
+              <option value="" disabled>Selecione...</option>
+              {tasks.phases.map((phase) => (
+                <option key={phase.id} value={phase.id}>
+                  {phase.nome}
                 </option>
               ))}
             </SelectField>
