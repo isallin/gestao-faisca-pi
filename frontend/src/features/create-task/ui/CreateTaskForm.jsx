@@ -19,9 +19,6 @@ import {
 } from '@/shared/ui';
 import './CreateTaskForm.css';
 
-const STAGES = ['Estudo preliminar', 'Anteprojeto', 'Projeto legal', 'Executivo', 'Obra'];
-const CATEGORIES = ['Projeto executivo', 'Obra', 'Acabamentos', 'Orçamento'];
-
 /** task: quando informada, o formulário entra em modo de edição. */
 export function CreateTaskForm({ onClose, task }) {
   const tasks = useTasks();
@@ -31,9 +28,8 @@ export function CreateTaskForm({ onClose, task }) {
   const [error, setError] = useState('');
   const [checklist, setChecklist] = useState(task?.checklist ?? []);
   const isEditing = Boolean(task);
-  const statuses = isEditing ? ['Pendente', 'Em andamento', 'Concluído'] : ['Pendente', 'Em andamento'];
-  const categoryOptions = tasks.categories.length > 0 ? tasks.categories.map((item) => item.nome) : CATEGORIES;
-  const phaseOptions = tasks.phases.length > 0 ? tasks.phases.map((item) => item.nome) : STAGES;
+  const statuses = ['Pendente', 'Em andamento', 'In Hold', 'Concluído', 'Cancelado'];
+  const categoryOptions = tasks.categories.map((item) => item.nome);
 
   const addItem = () => setChecklist((list) => [...list, { id: Date.now(), text: '', done: false }]);
   const changeItem = (id, text) => setChecklist((list) => list.map((i) => (i.id === id ? { ...i, text } : i)));
@@ -94,7 +90,7 @@ export function CreateTaskForm({ onClose, task }) {
     }
 
     if (!payload.projetoId || !payload.categoriaId || !payload.fkTarefaFase) {
-      setError('Selecione projeto, categoria e etapa validos para salvar no backend.');
+      setError('Selecione projeto, categoria e etapa válidos para salvar no backend.');
       return;
     }
 
@@ -118,16 +114,55 @@ export function CreateTaskForm({ onClose, task }) {
         <FormAlert>{error}</FormAlert>
         <FormColumns cols={2}>
           <div>
-            <SelectField label="Responsável" name="member" options={collaborators.map((c) => c.name)} defaultValue={task?.member} />
-            <Field label="Nome" name="name" placeholder="Ex.: Revisar planta de iluminação" defaultValue={task?.name} />
-            <SelectField label="Cliente" name="client" options={clients.map((c) => c.name)} defaultValue={task?.client ?? ''}>
-              <option value="">Selecione</option>
+            <SelectField label="Responsável" name="member" defaultValue={task?.member ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {collaborators.map((c) => (
+                <option key={c.id ?? c.name} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
             </SelectField>
-            <SelectField label="Projeto" name="project" options={projects.map((p) => p.code)} defaultValue={task?.project} />
-            <SelectField label="Etapa" name="stage" options={phaseOptions} defaultValue={task?.stage} />
-            <SelectField label="Status" name="status" options={statuses} defaultValue={task?.status} />
-            <SelectField label="Prioridade" name="priority" options={TASK_PRIORITIES} defaultValue={task?.priority} />
-            <SelectField label="Categoria" name="category" options={categoryOptions} defaultValue={task?.category} />
+            <Field label="Nome" name="name" placeholder="Ex.: Revisar planta de iluminação" defaultValue={task?.name} />
+            <SelectField label="Cliente" name="client" defaultValue={task?.client ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {clients.map((c) => (
+                <option key={c.id ?? c.name} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Projeto" name="project" defaultValue={task?.project ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {projects.map((p) => (
+                <option key={p.id ?? p.code} value={p.code}>
+                  {p.code}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Categoria" name="category" defaultValue={task?.category ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Status" name="status" defaultValue={task?.status ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Prioridade" name="priority" defaultValue={task?.priority ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {TASK_PRIORITIES.map((priority) => (
+                <option key={priority} value={priority}>
+                  {priority}
+                </option>
+              ))}
+            </SelectField>
           </div>
           <div>
             <Field label="Data de início" name="start" type="date" defaultValue={task?.start} />

@@ -7,12 +7,11 @@ import {
   listTasks,
 } from '@/shared/api/task';
 import { listProjects } from '@/shared/api/project';
-import { initialTasks } from './mock';
 
 const TasksContext = createContext(null);
 
 export function TasksProvider({ children }) {
-  const [items, setItems] = useState(initialTasks);
+  const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [phases, setPhases] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
