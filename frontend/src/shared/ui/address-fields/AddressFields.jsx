@@ -5,6 +5,7 @@ export function AddressFields({ defaults = {} }) {
   return (
     <div>
       <h3>Endereço</h3>
+      <Field label="CEP" name="zip" placeholder="00000-000" defaultValue={defaults.zip} />
       <Field
         label="Logradouro"
         name="street"
@@ -24,7 +25,6 @@ export function AddressFields({ defaults = {} }) {
         placeholder="Ex.: Pinheiros"
         defaultValue={defaults.neighborhood}
       />
-      <Field label="CEP" name="zip" placeholder="00000-000" defaultValue={defaults.zip} />
       <Field label="Cidade" name="city" placeholder="Ex.: São Paulo" defaultValue={defaults.city} />
       <Field label="Estado" name="state" placeholder="Ex.: SP" defaultValue={defaults.state} />
       <Field label="País" name="country" defaultValue={defaults.country ?? 'Brasil'} />

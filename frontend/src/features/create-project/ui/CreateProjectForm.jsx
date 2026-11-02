@@ -16,7 +16,6 @@ import {
 } from '@/shared/ui';
 
 const STATUSES = ['Planejamento', 'Em andamento', 'Aguardando', 'Concluído'];
-const STAGES = ['Estudo preliminar', 'Anteprojeto', 'Projeto legal', 'Executivo', 'Obra', 'Entrega'];
 const PROPERTY = ['Residencial', 'Comercial', 'Industrial', 'Rural', 'Terreno', 'Outro'];
 
 /** Valores iniciais a partir de um projeto existente (edição). */
@@ -32,7 +31,7 @@ function detailsOf(project) {
 
 /** project: quando informado, o formulário entra em modo de edição. */
 export function CreateProjectForm({ onClose, project }) {
-  const { add, update } = useProjects();
+  const { add, update, phases } = useProjects();
   const clients = useClients().items;
   const isEditing = Boolean(project);
   const d = detailsOf(project);
@@ -40,15 +39,18 @@ export function CreateProjectForm({ onClose, project }) {
   const defaultClientId = String(
     project?.clientId ?? clients.find((client) => client.name === project?.client)?.id ?? clients[0]?.id ?? '',
   );
+  const defaultPhaseId = String(project?.stageId ?? phases[0]?.id ?? '');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
 
     const clientId = Number(data.clientId || project?.clientId || clients[0]?.id || 0);
+    const phaseId = Number(data.phaseId || project?.stageId || phases[0]?.id || 0) || null;
     const clientName = clients.find((client) => client.id === clientId)?.name ?? project?.client;
+    const phaseName = phases.find((phase) => phase.id === phaseId)?.nome ?? project?.stage;
     const address = `${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`;
-    if (!data.name) return setError('Preencha o nome da tarefa para continuar.');
+    if (!data.name) return setError('Preencha o nome do projeto para continuar.');
     if (data.end < data.start) {
       return setError('Não foi possível salvar: a data de término não pode ser anterior à de início.');
     }
@@ -66,9 +68,9 @@ export function CreateProjectForm({ onClose, project }) {
       dataInicio: data.start ? `${data.start}T00:00:00` : '',
       dataFim: data.end ? `${data.end}T00:00:00` : '',
       observacao: data.note,
-      fkTarefaFase: null,
+      fkTarefaFase: phaseId,
       status: data.status,
-      stage: data.stage,
+      stage: phaseName,
       address,
       clientName,
       details: data,
@@ -84,7 +86,8 @@ export function CreateProjectForm({ onClose, project }) {
           client: clientName,
           clientId,
           status: data.status,
-          stage: data.stage,
+          stage: phaseName,
+          stageId: phaseId,
           address,
           note: data.note,
           details: data,
@@ -101,6 +104,11 @@ export function CreateProjectForm({ onClose, project }) {
       return;
     }
 
+    if (!phaseId) {
+      setError('Selecione uma fase para continuar.');
+      return;
+    }
+
     if (isEditing) {
       update(project.id, {
         name: data.name,
@@ -108,7 +116,8 @@ export function CreateProjectForm({ onClose, project }) {
         client: clientName,
         clientId,
         status: data.status,
-        stage: data.stage,
+        stage: phaseName,
+        stageId: phaseId,
         address,
         note: data.note,
         details: data,
@@ -140,7 +149,8 @@ export function CreateProjectForm({ onClose, project }) {
             <h3>Dados do projeto</h3>
             <Field label="Nome" name="name" placeholder="Ex.: Casa Paineiras" defaultValue={project?.name} />
             <Field label="Sigla/Código" name="code" placeholder="Ex.: RES-024" defaultValue={project?.code} />
-            <SelectField label="Cliente" name="clientId" defaultValue={defaultClientId}>
+            <SelectField label="Cliente" name="clientId" defaultValue={defaultClientId || ""}>
+              <option value="" disabled>Selecione...</option>
               {clients.map((client) => (
                 <option key={client.id} value={client.id}>
                   {client.name}
@@ -148,7 +158,7 @@ export function CreateProjectForm({ onClose, project }) {
               ))}
             </SelectField>
             <SelectField label="Tipo de imóvel" name="propertyType" defaultValue={d.propertyType} options={PROPERTY}>
-              <option value="">Selecione...</option>
+              <option value="" disabled>Selecione...</option>
             </SelectField>
             <Field label="Metragem (m²)" name="area" placeholder="Ex.: 180" defaultValue={d.area} />
             <Field label="Condomínio" name="condo" placeholder="Nome do condomínio (se houver)" defaultValue={d.condo} />
@@ -157,11 +167,13 @@ export function CreateProjectForm({ onClose, project }) {
           <AddressFields defaults={d} />
           <div>
             <h3>Status e observação</h3>
-            <SelectField label="Status" name="status" options={STATUSES} defaultValue={project?.status}>
-              <option value="">Selecione...</option>
-            </SelectField>
-            <SelectField label="Etapa" name="stage" options={STAGES} defaultValue={project?.stage}>
-              <option value="">Selecione...</option>
+            <SelectField label="Fase" name="phaseId" defaultValue={""}>
+              <option value="" disabled>Selecione...</option>
+              {phases.map((phase) => (
+                <option key={phase.id} value={phase.id}>
+                  {phase.nome}
+                </option>
+              ))}
             </SelectField>
             <Field label="Data de início" name="start" type="date" defaultValue={project?.start} />
             <Field label="Data do fim" name="end" type="date" defaultValue={project?.end} />

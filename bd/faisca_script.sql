@@ -129,3 +129,27 @@ CREATE TABLE colaborador_tarefa (
     CONSTRAINT fk_colaborador_tarefa FOREIGN KEY (pkTarefa) REFERENCES tarefa(id) ON DELETE CASCADE,
     CONSTRAINT fk_colaborador_usuario FOREIGN KEY (pkColaborador) REFERENCES usuario(id) ON DELETE CASCADE
 );
+
+INSERT INTO fase (nome, ordem) VALUES
+('Pré-contrato', 1),
+('Levantamento', 2),
+('Estudo preliminar', 3),
+('Estudo de anteprojeto', 4),
+('Projeto legal', 5),
+('Pré-executivo', 6),
+('Executivo', 7),
+('Pré-obra', 8),
+('Obra', 9);
+
+INSERT INTO tarefa_categoria (nome) VALUES
+('Organização'),
+('Projeto'),
+('Compatibilização'),
+('Modelagem'),
+('Documentação'),
+('Produção'),
+('Estudo'),
+('Entrega'),
+('Administrativo'),
+('Financeiro'),
+('Outros');
