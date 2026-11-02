@@ -87,6 +87,7 @@ export function SuppliersPage() {
       detail={detail}
       onAdd={() => navigate('/add-fornecedor')}
       onEdit={(supplier) => navigate(`/editar-fornecedor/${supplier.id}`)}
+      onDelete={(supplier) => navigate(`/excluir-fornecedor/${supplier.id}`)}
       filters={filters}
     />
   );

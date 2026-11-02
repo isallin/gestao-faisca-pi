@@ -12,6 +12,7 @@ import {
   Menu,
   X,
 } from 'lucide-react';
+import { clearAuthSession } from '@/shared/api/auth';
 import { Button } from '@/shared/ui';
 import './AppShell.css';
 
@@ -57,7 +58,7 @@ export function AppShell({ children }) {
             </NavLink>
           ))}
         </nav>
-        <Link to="/login" className="logout">
+        <Link to="/login" className="logout" onClick={clearAuthSession}>
           <LogOut size={20} />
           <span>Sair</span>
         </Link>

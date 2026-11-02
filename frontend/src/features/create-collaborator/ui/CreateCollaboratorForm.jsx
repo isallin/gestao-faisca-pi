@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { useCollaborators } from '@/entities/collaborator';
 import { readForm } from '@/shared/lib/read-form';
 import { Field, Form, FormActions, FormAlert, FormPair, Modal } from '@/shared/ui';
@@ -10,7 +11,7 @@ export function CreateCollaboratorForm({ onClose, collaborator }) {
   const isEditing = Boolean(collaborator);
   const [first = '', ...rest] = (collaborator?.name ?? '').split(' ');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
 
@@ -18,15 +19,29 @@ export function CreateCollaboratorForm({ onClose, collaborator }) {
       return setError('Não foi possível salvar: as senhas não coincidem.');
     }
 
-    const record = {
-      name: `${data.name} ${data.last}`.trim(),
-      role: data.role,
+    const payload = {
+      nome: data.name,
+      sobrenome: data.last,
       email: data.email,
+      cargo: data.role,
+      senha: data.password,
     };
 
-    if (isEditing) update(collaborator.id, record);
-    else add({ id: Date.now(), projects: '', ...record });
-    onClose();
+    setError('');
+
+    try {
+      if (isEditing) await update(collaborator.id, { nome: data.name, sobrenome: data.last, email: data.email, cargo: data.role });
+      else await add(payload);
+      onClose();
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError) && requestError.response?.status === 409) {
+        setError('Ja existe um colaborador com este e-mail.');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
+        setError('Dados invalidos. Confira os campos e tente novamente.');
+      } else {
+        setError('Nao foi possivel salvar o colaborador no momento.');
+      }
+    }
   };
 
   return (

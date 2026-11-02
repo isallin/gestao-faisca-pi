@@ -4,7 +4,7 @@ import { ProjectsProvider } from '@/entities/project';
 import { SuppliersProvider } from '@/entities/supplier';
 import { TasksProvider } from '@/entities/task';
 
-/** Compõe os stores em memória de cada entidade (dados duram só na sessão). */
+/** Carrega as coleções persistidas na API para as páginas da aplicação. */
 export function AppProviders({ children }) {
   return (
     <ClientsProvider>

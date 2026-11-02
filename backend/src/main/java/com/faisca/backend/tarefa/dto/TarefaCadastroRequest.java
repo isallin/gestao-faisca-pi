@@ -2,6 +2,8 @@ package com.faisca.backend.tarefa.dto;
 
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
+import java.util.List;
+import jakarta.validation.Valid;
 
 public class TarefaCadastroRequest {
 
@@ -41,6 +43,15 @@ public class TarefaCadastroRequest {
     @NotBlank(message = "Status é obrigatório")
     @Size(max = 70, message = "Status deve ter no máximo 70 caracteres")
     private String status;
+
+    private Integer colaboradorId;
+    private List<@Valid ChecklistRequest> checklist;
+
+    public record ChecklistRequest(@NotBlank @Size(max = 200) String text, boolean done) {}
+    public Integer getColaboradorId() { return colaboradorId; }
+    public void setColaboradorId(Integer colaboradorId) { this.colaboradorId = colaboradorId; }
+    public List<ChecklistRequest> getChecklist() { return checklist; }
+    public void setChecklist(List<ChecklistRequest> checklist) { this.checklist = checklist; }
 
     public Integer getProjetoId() { return projetoId; }
     public void setProjetoId(Integer projetoId) { this.projetoId = projetoId; }
