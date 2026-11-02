@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useCollaborators } from '@/entities/collaborator';
-import { getAuthToken } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import { Field, Form, FormActions, FormAlert, FormPair, Modal } from '@/shared/ui';
 
@@ -28,28 +27,11 @@ export function CreateCollaboratorForm({ onClose, collaborator }) {
       senha: data.password,
     };
 
-    const record = {
-      name: `${data.name} ${data.last}`.trim(),
-      role: data.role,
-      email: data.email,
-    };
-
-    if (isEditing) {
-      update(collaborator.id, record);
-      onClose();
-      return;
-    }
-
     setError('');
 
-    if (!getAuthToken()) {
-      add(payload);
-      onClose();
-      return;
-    }
-
     try {
-      await add(payload);
+      if (isEditing) await update(collaborator.id, { nome: data.name, sobrenome: data.last, email: data.email, cargo: data.role });
+      else await add(payload);
       onClose();
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 409) {

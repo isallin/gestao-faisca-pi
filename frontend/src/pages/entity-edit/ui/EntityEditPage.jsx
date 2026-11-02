@@ -26,9 +26,10 @@ export function EntityEditPage({ kind }) {
   usePageTitle(title);
   const navigate = useNavigate();
   const { id } = useParams();
-  const { items } = useStore();
+  const { items, isLoading } = useStore();
   const record = items.find((item) => String(item.id) === id);
 
+  if (!record && isLoading) return null;
   if (!record) return <Navigate to={back} replace />;
   return <Form {...{ [prop]: record }} onClose={() => navigate(back)} />;
 }

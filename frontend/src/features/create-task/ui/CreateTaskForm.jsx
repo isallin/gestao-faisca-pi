@@ -5,7 +5,6 @@ import { useClients } from '@/entities/client';
 import { useCollaborators } from '@/entities/collaborator';
 import { useProjects } from '@/entities/project';
 import { TASK_PRIORITIES, useTasks } from '@/entities/task';
-import { getAuthToken } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import {
   Button,
@@ -56,8 +55,8 @@ export function CreateTaskForm({ onClose, task }) {
       fkTarefaFase: phase?.id,
       nome: data.name,
       prioridade: data.priority,
-      dataInicioPrev: data.start ? `${data.start}T00:00:00` : '',
-      dataFimPrev: data.end ? `${data.end}T00:00:00` : '',
+      dataInicioPrev: data.start ? `${data.start}T00:00:00` : null,
+      dataFimPrev: data.end ? `${data.end}T00:00:00` : null,
       dataInicioReal: null,
       dataFimReal: null,
       observacao: data.note,
@@ -69,25 +68,7 @@ export function CreateTaskForm({ onClose, task }) {
       checklist: checklist.filter((i) => i.text.trim()),
     };
 
-    const record = {
-      ...data,
-      done: data.status === 'Concluído',
-      checklist: checklist.filter((i) => i.text.trim()),
-    };
-
-    if (isEditing) {
-      tasks.update(task.id, record);
-      onClose();
-      return;
-    }
-
     setError('');
-
-    if (!getAuthToken()) {
-      tasks.add(payload);
-      onClose();
-      return;
-    }
 
     if (!payload.projetoId || !payload.categoriaId || !payload.fkTarefaFase) {
       setError('Selecione projeto, categoria e etapa válidos para salvar no backend.');
@@ -95,7 +76,8 @@ export function CreateTaskForm({ onClose, task }) {
     }
 
     try {
-      await tasks.add(payload);
+      if (isEditing) await tasks.update(task.id, payload);
+      else await tasks.add(payload);
       onClose();
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {

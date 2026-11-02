@@ -1,137 +1,37 @@
 package com.faisca.backend.usuario.controller;
 
 import com.faisca.backend.usuario.dto.*;
-import com.faisca.backend.usuario.entity.Usuario;
-import com.faisca.backend.usuario.repository.UsuarioRepository;
-
+import com.faisca.backend.usuario.service.UsuarioService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/usuarios")
 public class UsuarioController {
-    private final UsuarioRepository repository;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-
-    public UsuarioController(UsuarioRepository repository) {
-        this.repository = repository;
-    }
-
+    private final UsuarioService service;
+    public UsuarioController(UsuarioService service) { this.service = service; }
     @GetMapping
-    public ResponseEntity<List<UsuarioResponse>> listar() {
-        List<Usuario> usuarios = repository.findAll();
-        List<UsuarioResponse> res = new ArrayList<>();
-
-        for (int i = 0; i < usuarios.size(); i++) {
-            res.add(converterParaResponse(usuarios.get(i)));
-        }
-
-        return ResponseEntity.status(200).body(res);
-    }
-
+    public List<UsuarioResponse> listar() { return service.listar(); }
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> listarPorId(@PathVariable Integer id) {
-        Optional<Usuario> teste = repository.findById(id);
-
-        if (teste.isEmpty()) {
-            return ResponseEntity.status(404).build();
-        }
-
-        return ResponseEntity.status(200).body(converterParaResponse(teste.get()));
-    }
-
+    public UsuarioResponse buscar(@PathVariable Integer id) { return service.buscar(id); }
     @PostMapping
     public ResponseEntity<UsuarioResponse> cadastrar(@RequestBody @Valid UsuarioCadastroRequest request) {
-        String email = request.getEmail().trim().toLowerCase();
-
-        if (repository.existsByEmail(email)) {
-            return ResponseEntity.status(409).build();
-        }
-
-        Usuario usuario = new Usuario();
-        usuario.setNome(request.getNome().trim());
-        usuario.setSobrenome(request.getSobrenome().trim());
-        usuario.setEmail(email);
-        usuario.setCargo(request.getCargo().trim());
-        usuario.setSenha(encoder.encode(request.getSenha()));
-
-        Usuario registro = repository.save(usuario);
-
-        return ResponseEntity.status(201).body(converterParaResponse(registro));
+        return ResponseEntity.status(201).body(service.criar(request));
     }
-
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> atualizar(@PathVariable Integer id, @RequestBody @Valid UsuarioPutRequest request) {
-        Optional<Usuario> teste = repository.findById(id);
-
-        if (teste.isEmpty()) {
-            return ResponseEntity.status(404).build();
-        }
-
-        String email = request.getEmail().trim().toLowerCase();
-
-        if (repository.existsByEmailAndIdNot(email, id)) {
-            return ResponseEntity.status(409).build();
-        }
-
-        Usuario usuario = teste.get();
-        usuario.setNome(request.getNome().trim());
-        usuario.setSobrenome(request.getSobrenome().trim());
-        usuario.setEmail(email);
-        usuario.setCargo(request.getCargo().trim());
-
-        if (request.getSenha() != null) {
-            usuario.setSenha(encoder.encode(request.getSenha()));
-        }
-
-        Usuario registro = repository.save(usuario);
-
-        return ResponseEntity.status(200).body(converterParaResponse(registro));
+    public UsuarioResponse atualizar(@PathVariable Integer id, @RequestBody @Valid UsuarioPutRequest request) {
+        return service.atualizar(id, request);
     }
-
     @PatchMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> atualizarParcial(@PathVariable Integer id, @RequestBody @Valid UsuarioPatchRequest request) {
-        Optional<Usuario> teste = repository.findById(id);
-
-        if (teste.isEmpty()) {
-            return ResponseEntity.status(404).build();
-        }
-
-        Usuario usuario = teste.get();
-
-        if (request.getEmail() != null) {
-            String email = request.getEmail().trim().toLowerCase();
-
-            if (repository.existsByEmailAndIdNot(email, id)) {
-                return ResponseEntity.status(409).build();
-            }
-            usuario.setEmail(email);
-        }
-        if (request.getNome() != null) {
-            usuario.setNome(request.getNome().trim());
-        }
-        if (request.getSobrenome() != null) {
-            usuario.setSobrenome(request.getSobrenome().trim());
-        }
-        if (request.getCargo() != null) {
-            usuario.setCargo(request.getCargo().trim());
-        }
-        if (request.getSenha() != null) {
-            usuario.setSenha(encoder.encode(request.getSenha()));
-        }
-
-        Usuario registro = repository.save(usuario);
-
-        return ResponseEntity.status(200).body(converterParaResponse(registro));
+    public UsuarioResponse atualizarParcial(@PathVariable Integer id, @RequestBody @Valid UsuarioPatchRequest request) {
+        return service.atualizarParcial(id, request);
     }
-
-    private UsuarioResponse converterParaResponse(Usuario u) {
-        return new UsuarioResponse(u.getId(), u.getNome(), u.getSobrenome(), u.getEmail(), u.getCargo());
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Integer id, HttpServletRequest request) {
+        service.excluir(id, (Integer) request.getAttribute("usuarioId"));
+        return ResponseEntity.noContent().build();
     }
 }

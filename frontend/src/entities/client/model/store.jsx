@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { createClient, listClients } from '@/shared/api/client';
+import { createClient, deleteClient, listClients, updateClient } from '@/shared/api/client';
 import { getAuthToken } from '@/shared/api/auth';
 // import { initialClients } from './mock';
 
@@ -7,22 +7,8 @@ const ClientsContext = createContext(null);
 
 export function ClientsProvider({ children }) {
   const [items, setItems] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(getAuthToken()));
   const [error, setError] = useState('');
-
-  const buildLocalClient = (payload) => {
-    const isPf = payload.tipo === 'PF';
-    return {
-      id: Date.now(),
-      name: isPf ? payload.nome : payload.nomeFantasia,
-      type: isPf ? 'Pessoa Física' : 'Pessoa Jurídica',
-      projects: '—',
-      address: `${payload.logradouro}, ${payload.numero} — ${payload.bairro}, ${payload.cidade}-${String(payload.estado ?? '').toUpperCase()}`,
-      phone: payload.telefone,
-      email: payload.email,
-      note: payload.observacao ?? '',
-    };
-  };
 
   const reload = useCallback(async () => {
     if (!getAuthToken()) {
@@ -55,24 +41,19 @@ export function ClientsProvider({ children }) {
       error,
       reload,
       add: async (payload) => {
-        if (!getAuthToken()) {
-          const created = buildLocalClient(payload);
-          setItems((list) => [created, ...list]);
-          return created;
-        }
-
         const created = await createClient(payload);
         setItems((list) => [created, ...list]);
         return created;
       },
-      update: (id, patch) =>
-        setItems((list) =>
-          list.map((item) =>
-            item.id === id
-              ? { ...item, ...(typeof patch === 'function' ? patch(item) : patch) }
-              : item,
-          ),
-        ),
+      update: async (id, payload) => {
+        const updated = await updateClient(id, payload);
+        setItems((list) => list.map((item) => item.id === id ? updated : item));
+        return updated;
+      },
+      remove: async (id) => {
+        await deleteClient(id);
+        setItems((list) => list.filter((item) => item.id !== id));
+      },
     }),
     [error, isLoading, items, reload],
   );
