@@ -67,6 +67,7 @@ export function ClientsPage() {
       detail={detail}
       onAdd={() => navigate('/add-cliente-pessoa-fisica')}
       onEdit={(client) => navigate(`/editar-cliente/${client.id}`)}
+      onDelete={(client) => navigate(`/excluir-cliente/${client.id}`)}
       filters={filters}
       headerExtra={
         <Button variant="ghost" onClick={reload}>

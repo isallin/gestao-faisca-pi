@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/entities/project';
 import { formatDate, useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
@@ -21,8 +22,11 @@ const detail = (record) => [
 
 export function RecordsPage() {
   usePageTitle('Registros');
+  const navigate = useNavigate();
   const { items: tasks } = useTasks();
   const { items: projects } = useProjects();
+
+  const taskIdOf = (record) => Number(String(record.id).split('-')[0]);
 
   const records = useMemo(() => collectRecords(tasks), [tasks]);
   const filters = useMemo(
@@ -49,6 +53,8 @@ export function RecordsPage() {
       rows={records}
       columns={COLUMNS}
       detail={detail}
+      onEdit={(record) => navigate(`/editar-tarefa/${taskIdOf(record)}`)}
+      onDelete={(record) => navigate(`/excluir-tarefa/${taskIdOf(record)}`)}
       filters={filters}
       emptyMessage="Nenhum registro de tempo encontrado."
     />

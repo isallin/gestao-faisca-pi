@@ -49,6 +49,7 @@ export function ProjectsPage() {
       detail={(project) => detail(project, clientsById)}
       onAdd={() => navigate('/add-projeto')}
       onEdit={(project) => navigate(`/editar-projeto/${project.id}`)}
+      onDelete={(project) => navigate(`/excluir-projeto/${project.id}`)}
       filters={FILTERS}
       headerExtra={
         <Button variant="ghost" onClick={reload}>

@@ -114,6 +114,7 @@ export function TasksPage() {
           detail={detail}
           onAdd={() => navigate('/add-tarefa')}
           onEdit={(task) => navigate(`/editar-tarefa/${task.id}`)}
+          onDelete={(task) => navigate(`/excluir-tarefa/${task.id}`)}
           filters={filters}
           filterValues={values}
           onFilterChange={changeFilter}
