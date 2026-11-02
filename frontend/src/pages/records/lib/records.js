@@ -16,7 +16,8 @@ export function collectRecords(tasks) {
   return tasks
     .flatMap((task) =>
       (task.timeLogs ?? []).map((log) => ({
-        id: `${task.id}-${log.id}`,
+        id: log.id,
+        taskId: task.id,
         task: task.name,
         project: task.project,
         member: task.member,

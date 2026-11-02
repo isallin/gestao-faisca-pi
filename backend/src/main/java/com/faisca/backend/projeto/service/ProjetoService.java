@@ -54,6 +54,10 @@ public class ProjetoService {
         projeto.setRelacaoProprietario(trim(r.getRelacaoProprietario())); projeto.setTipoImovel(trim(r.getTipoImovel()));
         projeto.setAreaM2(r.getAreaM2()); projeto.setUnidadeNumero(trim(r.getUnidadeNumero()));
         projeto.setCondominio(trim(r.getCondominio())); projeto.setMatricula(trim(r.getMatricula()));
+        projeto.setCep(r.getCep() == null ? null : r.getCep().replaceAll("\\D", ""));
+        projeto.setLogradouro(trim(r.getLogradouro())); projeto.setComplemento(trim(r.getComplemento()));
+        projeto.setBairro(trim(r.getBairro())); projeto.setCidade(trim(r.getCidade()));
+        projeto.setEstado(trim(r.getEstado())); projeto.setPais(trim(r.getPais()));
         projeto.setDataInicio(r.getDataInicio()); projeto.setDataFim(r.getDataFim());
         projeto.setObservacao(trim(r.getObservacao())); projeto.setFkTarefaFase(r.getFkTarefaFase());
     }

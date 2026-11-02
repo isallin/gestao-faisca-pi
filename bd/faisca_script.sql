@@ -77,6 +77,13 @@ CREATE TABLE projeto (
     unidade_numero VARCHAR(20),
     condominio VARCHAR(100),
     matricula VARCHAR(50),
+    cep VARCHAR(8),
+    logradouro VARCHAR(200),
+    complemento VARCHAR(60),
+    bairro VARCHAR(80),
+    cidade VARCHAR(80),
+    estado VARCHAR(2),
+    pais VARCHAR(80),
     data_inicio DATETIME,
     data_fim DATETIME,
     observacao VARCHAR(300),
@@ -119,7 +126,29 @@ CREATE TABLE registro_horas (
     fkTarefa INT NOT NULL,
     hora_inicio DATETIME,
     hora_fim DATETIME,
+    descricao VARCHAR(300),
     CONSTRAINT fk_registro_horas_tarefa FOREIGN KEY (fkTarefa) REFERENCES tarefa(id) ON DELETE CASCADE
+);
+
+CREATE TABLE fornecedor (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    categoria VARCHAR(80) NOT NULL,
+    telefone VARCHAR(20),
+    telefone2 VARCHAR(20),
+    email VARCHAR(120),
+    email2 VARCHAR(120),
+    cidade VARCHAR(80),
+    projetos VARCHAR(255),
+    observacao VARCHAR(300)
+);
+
+CREATE TABLE tarefa_checklist (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fkTarefa INT NOT NULL,
+    texto VARCHAR(200) NOT NULL,
+    concluido BOOLEAN NOT NULL DEFAULT FALSE,
+    CONSTRAINT fk_checklist_tarefa FOREIGN KEY (fkTarefa) REFERENCES tarefa(id) ON DELETE CASCADE
 );
 
 CREATE TABLE colaborador_tarefa (

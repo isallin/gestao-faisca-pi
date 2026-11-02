@@ -6,6 +6,7 @@ import com.faisca.backend.projeto.repository.ProjetoRepository;
 import com.faisca.backend.tarefa.dto.*;
 import com.faisca.backend.tarefa.entity.*;
 import com.faisca.backend.tarefa.repository.*;
+import com.faisca.backend.usuario.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,8 +20,9 @@ public class TarefaService {
     private final ProjetoRepository projetos;
     private final TarefaCategoriaRepository categorias;
     private final FaseRepository fases;
-    public TarefaService(TarefaRepository repository, ProjetoRepository projetos, TarefaCategoriaRepository categorias, FaseRepository fases) {
-        this.repository = repository; this.projetos = projetos; this.categorias = categorias; this.fases = fases;
+    private final UsuarioRepository usuarios;
+    public TarefaService(TarefaRepository repository, ProjetoRepository projetos, TarefaCategoriaRepository categorias, FaseRepository fases, UsuarioRepository usuarios) {
+        this.repository = repository; this.projetos = projetos; this.categorias = categorias; this.fases = fases; this.usuarios = usuarios;
     }
     @Transactional(readOnly = true)
     public List<TarefaResponse> listar() { return repository.findAll().stream().map(TarefaResponse::new).toList(); }
@@ -67,5 +69,14 @@ public class TarefaService {
         tarefa.setPrioridade(r.getPrioridade()); tarefa.setDataInicioPrev(r.getDataInicioPrev());
         tarefa.setDataFimPrev(r.getDataFimPrev()); tarefa.setDataInicioReal(r.getDataInicioReal());
         tarefa.setDataFimReal(r.getDataFimReal()); tarefa.setObservacao(r.getObservacao() == null ? null : r.getObservacao().trim());
+        tarefa.getColaboradores().clear();
+        if (r.getColaboradorId() != null) tarefa.getColaboradores().add(usuarios.findById(r.getColaboradorId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Colaborador não encontrado")));
+        tarefa.getChecklist().clear();
+        if (r.getChecklist() != null) for (TarefaCadastroRequest.ChecklistRequest item : r.getChecklist()) {
+            ChecklistItem checklistItem = new ChecklistItem();
+            checklistItem.setTarefa(tarefa); checklistItem.setText(item.text().trim()); checklistItem.setDone(item.done());
+            tarefa.getChecklist().add(checklistItem);
+        }
     }
 }

@@ -42,12 +42,12 @@ export function CollaboratorsProvider({ children }) {
       },
       update: async (id, payload) => {
         const updated = mapCollaboratorResponse(await updateCollaborator(id, payload));
-        setItems((list) => list.map((item) => item.id === id ? updated : item));
+        setItems((list) => list.map((item) => item.id === Number(id) ? updated : item));
         return updated;
       },
       remove: async (id) => {
         await deleteCollaborator(id);
-        setItems((list) => list.filter((item) => item.id !== id));
+        setItems((list) => list.filter((item) => item.id !== Number(id)));
       },
     }),
     [error, isLoading, items, reload],

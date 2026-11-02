@@ -43,6 +43,14 @@ public class Projeto {
     @Column(name = "matricula", length = 50)
     private String matricula;
 
+    @Column(name = "cep", length = 8) private String cep;
+    @Column(name = "logradouro", length = 200) private String logradouro;
+    @Column(name = "complemento", length = 60) private String complemento;
+    @Column(name = "bairro", length = 80) private String bairro;
+    @Column(name = "cidade", length = 80) private String cidade;
+    @Column(name = "estado", length = 2) private String estado;
+    @Column(name = "pais", length = 80) private String pais;
+
     @Column(name = "data_inicio")
     private LocalDateTime dataInicio;
 
@@ -83,6 +91,20 @@ public class Projeto {
 
     public String getMatricula() { return matricula; }
     public void setMatricula(String matricula) { this.matricula = matricula; }
+    public String getCep() { return cep; }
+    public void setCep(String cep) { this.cep = cep; }
+    public String getLogradouro() { return logradouro; }
+    public void setLogradouro(String logradouro) { this.logradouro = logradouro; }
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
+    public String getBairro() { return bairro; }
+    public void setBairro(String bairro) { this.bairro = bairro; }
+    public String getCidade() { return cidade; }
+    public void setCidade(String cidade) { this.cidade = cidade; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+    public String getPais() { return pais; }
+    public void setPais(String pais) { this.pais = pais; }
 
     public LocalDateTime getDataInicio() { return dataInicio; }
     public void setDataInicio(LocalDateTime dataInicio) { this.dataInicio = dataInicio; }

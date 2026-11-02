@@ -52,12 +52,12 @@ export function ProjectsProvider({ children }) {
       update: async (id, payload) => {
         const updated = await updateProject(id, payload);
         const mapped = mapProjectResponse(updated, new Map(phases.map((p) => [p.id, p.nome])));
-        setItems((list) => list.map((item) => item.id === id ? mapped : item));
+        setItems((list) => list.map((item) => item.id === Number(id) ? mapped : item));
         return mapped;
       },
       remove: async (id) => {
         await deleteProject(id);
-        setItems((list) => list.filter((item) => item.id !== id));
+        setItems((list) => list.filter((item) => item.id !== Number(id)));
       },
     }),
     [error, isLoading, items, phases, reload],
@@ -83,7 +83,7 @@ function mapProjectResponse(item, phaseMap) {
     clientId: item.clienteId,
     stageId: item.fkTarefaFase,
     stage: phaseMap.get(item.fkTarefaFase) || (item.fkTarefaFase ? `Fase ${item.fkTarefaFase}` : '—'),
-    address: item.condominio || item.unidadeNumero || '—',
+    address: item.cidade ? `${item.bairro ? `${item.bairro}, ` : ''}${item.cidade}-${item.estado || ''}` : (item.condominio || item.unidadeNumero || '—'),
     note: item.observacao || '',
     start: item.dataInicio?.slice(0, 10) || '',
     end: item.dataFim?.slice(0, 10) || '',
@@ -93,6 +93,8 @@ function mapProjectResponse(item, phaseMap) {
       condo: item.condominio || '',
       registry: item.matricula || '',
       number: item.unidadeNumero || '',
+      zip: item.cep || '', street: item.logradouro || '', complement: item.complemento || '',
+      neighborhood: item.bairro || '', city: item.cidade || '', state: item.estado || '', country: item.pais || 'Brasil',
     },
   };
 }
