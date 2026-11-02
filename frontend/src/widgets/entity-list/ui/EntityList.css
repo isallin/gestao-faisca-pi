@@ -3,13 +3,16 @@
   position: relative;
   background: var(--neutral);
   border-radius: 8px;
-  padding: 14px 64px 14px 16px;
+  padding: 14px 16px;
   box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent);
   overflow: hidden;
 }
 .entity-card:hover { background: var(--surface); }
-.entity-main { min-height: 52px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; gap: 20px; align-items: center; }
-.entity-main > div { display: grid; }
+.entity-main { min-height: 52px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center; }
+.entity-fields { min-width: 0; display: grid; grid-template-columns: repeat(var(--entity-columns), minmax(0, 1fr)); gap: 20px; }
+.entity-fields > div { min-width: 0; display: grid; }
+.entity-actions { display: flex; align-items: center; gap: 4px; }
+.entity-actions .btn { white-space: nowrap; }
 .entity-main small, .entity-detail small { color: var(--muted-foreground); }
 .entity-main strong { overflow: hidden; text-overflow: ellipsis; }
 .entity-detail { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 28px; }
@@ -19,8 +22,10 @@
 .empty { text-align: center; color: var(--muted-foreground); padding: 48px; }
 
 @media (max-width: 1100px) {
-  .entity-main { grid-template-columns: repeat(2, 1fr) auto; }
+  .entity-main { grid-template-columns: 1fr; gap: 4px; }
+  .entity-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .entity-actions { justify-content: flex-end; flex-wrap: wrap; }
 }
 @media (max-width: 767px) {
-  .entity-main, .entity-detail { grid-template-columns: 1fr; }
+  .entity-fields, .entity-detail { grid-template-columns: 1fr; }
 }

@@ -91,39 +91,43 @@ export function EntityList({
           return (
             <article className="entity-card" key={row.id}>
               <div className="entity-main">
-                {columns.map((column) => (
-                  <div key={column.key}>
-                    <small>{column.label}</small>
-                    <strong>
-                      {String((column.render ? column.render(row) : row[column.key]) || '—')}
-                    </strong>
-                  </div>
-                ))}
-                <Button
-                  variant="ghost"
-                  aria-expanded={isOpen}
-                  onClick={() => setExpandedId(isOpen ? undefined : row.id)}
-                >
-                  {isOpen ? (
-                    <>
-                      <ChevronUp size={16} /> Ver menos
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown size={16} /> Ver mais
-                    </>
+                <div className="entity-fields" style={{ '--entity-columns': columns.length }}>
+                  {columns.map((column) => (
+                    <div key={column.key}>
+                      <small>{column.label}</small>
+                      <strong>
+                        {String((column.render ? column.render(row) : row[column.key]) || '—')}
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+                <div className="entity-actions">
+                  <Button
+                    variant="ghost"
+                    aria-expanded={isOpen}
+                    onClick={() => setExpandedId(isOpen ? undefined : row.id)}
+                  >
+                    {isOpen ? (
+                      <>
+                        <ChevronUp size={16} /> Ver menos
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown size={16} /> Ver mais
+                      </>
+                    )}
+                  </Button>
+                  {onEdit && (
+                    <Button variant="ghost" onClick={() => onEdit(row)}>
+                      <Pencil size={15} /> Editar
+                    </Button>
                   )}
-                </Button>
-                {onEdit && (
-                  <Button variant="ghost" onClick={() => onEdit(row)}>
-                    <Pencil size={15} /> Editar
-                  </Button>
-                )}
-                {onDelete && (
-                  <Button variant="ghost" onClick={() => onDelete(row)}>
-                    <Trash2 size={15} /> Deletar
-                  </Button>
-                )}
+                  {onDelete && (
+                    <Button variant="ghost" onClick={() => onDelete(row)}>
+                      <Trash2 size={15} /> Deletar
+                    </Button>
+                  )}
+                </div>
               </div>
 
               {isOpen && (
