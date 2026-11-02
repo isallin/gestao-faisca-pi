@@ -14,7 +14,6 @@ import {
   SelectField,
 } from '@/shared/ui';
 
-const STATUSES = ['Planejamento', 'Em andamento', 'Aguardando', 'Concluído'];
 const PROPERTY = ['Residencial', 'Comercial', 'Industrial', 'Rural', 'Terreno', 'Outro'];
 
 /** Valores iniciais a partir de um projeto existente (edição). */
@@ -64,6 +63,8 @@ export function CreateProjectForm({ onClose, project }) {
       unidadeNumero: data.number,
       condominio: data.condo,
       matricula: data.registry,
+      cep: data.zip, logradouro: data.street, complemento: data.complement,
+      bairro: data.neighborhood, cidade: data.city, estado: data.state, pais: data.country,
       dataInicio: data.start ? `${data.start}T00:00:00` : null,
       dataFim: data.end ? `${data.end}T00:00:00` : null,
       observacao: data.note,

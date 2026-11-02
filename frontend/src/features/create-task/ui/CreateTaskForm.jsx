@@ -47,9 +47,11 @@ export function CreateTaskForm({ onClose, task }) {
     const client = clients.find((item) => item.name === data.client);
     const category = tasks.categories.find((item) => item.nome === data.category);
     const phase = tasks.phases.find((item) => item.nome === data.stage);
+    const member = collaborators.find((item) => item.name === data.member);
 
     const payload = {
       projetoId: project?.id,
+      colaboradorId: member?.id ?? null,
       clienteId: client?.id ?? project?.clientId,
       categoriaId: category?.id,
       fkTarefaFase: phase?.id,
@@ -65,7 +67,7 @@ export function CreateTaskForm({ onClose, task }) {
       member: data.member,
       category: data.category,
       stage: data.stage,
-      checklist: checklist.filter((i) => i.text.trim()),
+      checklist: checklist.filter((i) => i.text.trim()).map(({ text, done }) => ({ text, done })),
     };
 
     setError('');

@@ -21,6 +21,16 @@ public class RegistroHoras {
     @Column(name = "hora_fim")
     private LocalDateTime horaFim;
 
+    @Column(name = "descricao", length = 300)
+    private String descricao;
+
+    public Integer getId() { return id; }
+    public Tarefa getTarefa() { return tarefa; }
+    public void setTarefa(Tarefa tarefa) { this.tarefa = tarefa; }
     public LocalDateTime getHoraInicio() { return horaInicio; }
+    public void setHoraInicio(LocalDateTime horaInicio) { this.horaInicio = horaInicio; }
     public LocalDateTime getHoraFim() { return horaFim; }
+    public void setHoraFim(LocalDateTime horaFim) { this.horaFim = horaFim; }
+    public String getDescricao() { return descricao; }
+    public void setDescricao(String descricao) { this.descricao = descricao; }
 }
