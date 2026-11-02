@@ -54,6 +54,7 @@ export const routes = [
       { path: '/excluir-tarefa/:id', element: <EntityDeletePage kind="task" /> },
       { path: '/excluir-cliente/:id', element: <EntityDeletePage kind="client" /> },
       { path: '/excluir-colaborador/:id', element: <EntityDeletePage kind="collaborator" /> },
+      { path: '/excluir-fornecedor/:id', element: <EntityDeletePage kind="supplier" /> },
       { path: '/excluir-projeto/:id', element: <EntityDeletePage kind="project" /> },
     ],
   },

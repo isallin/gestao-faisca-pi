@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Trash2 } from 'lucide-react';
 import { Button, FilterPanel, PageHeader } from '@/shared/ui';
 import { applyFilters, initialFilterValues } from '../lib/filters';
 import { FilterFields } from './FilterFields';
@@ -15,6 +15,7 @@ import './EntityList.css';
  *   detail: (row:object) => Array<{label:string,value:string}>,
  *   onAdd?: () => void,  // sem onAdd, o botão "+ Adicionar" não é exibido
  *   onEdit?: (row:object) => void,
+ *   onDelete?: (row:object) => void,
  *   filters?: Array<{key:string,label:string,options:Array<{value:string,label:string}>,match:(row:object,value:string)=>boolean}>,
  *   filterValues?: Record<string,string>, onFilterChange?: (key:string, value:string) => void,
  *   headerExtra?: import('react').ReactNode,
@@ -30,6 +31,7 @@ export function EntityList({
   detail,
   onAdd,
   onEdit,
+  onDelete,
   filters = [],
   filterValues,
   onFilterChange,
@@ -115,6 +117,11 @@ export function EntityList({
                 {onEdit && (
                   <Button variant="ghost" onClick={() => onEdit(row)}>
                     <Pencil size={15} /> Editar
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button variant="ghost" onClick={() => onDelete(row)}>
+                    <Trash2 size={15} /> Deletar
                   </Button>
                 )}
               </div>

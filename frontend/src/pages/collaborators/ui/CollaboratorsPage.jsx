@@ -28,6 +28,7 @@ export function CollaboratorsPage() {
       detail={detail}
       onAdd={() => navigate('/add-colaborador')}
       onEdit={(person) => navigate(`/editar-colaborador/${person.id}`)}
+      onDelete={(person) => navigate(`/excluir-colaborador/${person.id}`)}
       headerExtra={
         <Button variant="ghost" onClick={reload}>
           Recarregar
