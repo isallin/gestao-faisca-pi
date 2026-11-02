@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { Plus, X } from 'lucide-react';
 import { useClients } from '@/entities/client';
 import { useCollaborators } from '@/entities/collaborator';
@@ -17,9 +18,6 @@ import {
 } from '@/shared/ui';
 import './CreateTaskForm.css';
 
-const STAGES = ['Estudo preliminar', 'Anteprojeto', 'Projeto legal', 'Executivo', 'Obra'];
-const CATEGORIES = ['Projeto executivo', 'Obra', 'Acabamentos', 'Orçamento'];
-
 /** task: quando informada, o formulário entra em modo de edição. */
 export function CreateTaskForm({ onClose, task }) {
   const tasks = useTasks();
@@ -29,13 +27,15 @@ export function CreateTaskForm({ onClose, task }) {
   const [error, setError] = useState('');
   const [checklist, setChecklist] = useState(task?.checklist ?? []);
   const isEditing = Boolean(task);
-  const statuses = isEditing ? ['Pendente', 'Em andamento', 'Concluído'] : ['Pendente', 'Em andamento'];
+  const statuses = ['Pendente', 'Em andamento', 'In Hold', 'Concluído', 'Cancelado'];
+  const categoryOptions = tasks.categories.map((item) => item.nome);
+  const defaultPhaseId = String(task?.stageId ?? tasks.phases[0]?.id ?? '');
 
   const addItem = () => setChecklist((list) => [...list, { id: Date.now(), text: '', done: false }]);
   const changeItem = (id, text) => setChecklist((list) => list.map((i) => (i.id === id ? { ...i, text } : i)));
   const removeItem = (id) => setChecklist((list) => list.filter((i) => i.id !== id));
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
 
@@ -44,15 +44,59 @@ export function CreateTaskForm({ onClose, task }) {
       return setError('Não foi possível salvar: a data de término não pode ser anterior à de início.');
     }
 
-    const record = {
-      ...data,
-      done: data.status === 'Concluído',
-      checklist: checklist.filter((i) => i.text.trim()),
+    const project = projects.find((item) => item.code === data.project);
+    const client = clients.find((item) => item.name === data.client);
+    const category = tasks.categories.find((item) => item.nome === data.category);
+    const phaseId = Number(data.phaseId || task?.stageId || tasks.phases[0]?.id || 0) || null;
+    const phaseName = tasks.phases.find((item) => item.id === phaseId)?.nome ?? task?.stage;
+    const member = collaborators.find((item) => item.name === data.member);
+
+    const payload = {
+      projetoId: project?.id,
+      colaboradorId: member?.id ?? null,
+      clienteId: client?.id ?? project?.clientId,
+      categoriaId: category?.id,
+      fkTarefaFase: phaseId,
+      nome: data.name,
+      prioridade: data.priority,
+      dataInicioPrev: data.start ? `${data.start}T00:00:00` : null,
+      dataFimPrev: data.end ? `${data.end}T00:00:00` : null,
+      dataInicioReal: null,
+      dataFimReal: null,
+      observacao: data.note,
+      status: data.status,
+      project: data.project,
+      member: data.member,
+      category: data.category,
+      stage: phaseName,
+      checklist: checklist.filter((i) => i.text.trim()).map(({ text, done }) => ({ text, done })),
     };
 
-    if (isEditing) tasks.update(task.id, record);
-    else tasks.add({ id: Date.now(), ...record });
-    onClose();
+    setError('');
+
+    if (!payload.projetoId || !payload.categoriaId) {
+      setError('Selecione projeto e categoria válidos para salvar no backend.');
+      return;
+    }
+
+    if (!phaseId) {
+      setError('Selecione uma fase para continuar.');
+      return;
+    }
+
+    try {
+      if (isEditing) await tasks.update(task.id, payload);
+      else await tasks.add(payload);
+      onClose();
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
+        setError('Dados invalidos. Verifique datas e campos obrigatorios.');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
+        setError('Projeto, categoria ou fase nao encontrado(a) no backend.');
+      } else {
+        setError('Nao foi possivel salvar a tarefa no momento.');
+      }
+    }
   };
 
   return (
@@ -61,16 +105,63 @@ export function CreateTaskForm({ onClose, task }) {
         <FormAlert>{error}</FormAlert>
         <FormColumns cols={2}>
           <div>
-            <SelectField label="Responsável" name="member" options={collaborators.map((c) => c.name)} defaultValue={task?.member} />
-            <Field label="Nome" name="name" placeholder="Ex.: Revisar planta de iluminação" defaultValue={task?.name} />
-            <SelectField label="Cliente" name="client" options={clients.map((c) => c.name)} defaultValue={task?.client ?? ''}>
-              <option value="">Selecione</option>
+            <SelectField label="Responsável" name="member" defaultValue={task?.member ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {collaborators.map((c) => (
+                <option key={c.id ?? c.name} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
             </SelectField>
-            <SelectField label="Projeto" name="project" options={projects.map((p) => p.code)} defaultValue={task?.project} />
-            <SelectField label="Etapa" name="stage" options={STAGES} defaultValue={task?.stage} />
-            <SelectField label="Status" name="status" options={statuses} defaultValue={task?.status} />
-            <SelectField label="Prioridade" name="priority" options={TASK_PRIORITIES} defaultValue={task?.priority} />
-            <SelectField label="Categoria" name="category" options={CATEGORIES} defaultValue={task?.category} />
+            <Field label="Nome" name="name" placeholder="Ex.: Revisar planta de iluminação" defaultValue={task?.name} />
+            <SelectField label="Cliente" name="client" defaultValue={task?.client ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {clients.map((c) => (
+                <option key={c.id ?? c.name} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Projeto" name="project" defaultValue={task?.project ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {projects.map((p) => (
+                <option key={p.id ?? p.code} value={p.code}>
+                  {p.code}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Categoria" name="category" defaultValue={task?.category ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {categoryOptions.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Fase" name="phaseId" defaultValue={defaultPhaseId}>
+              <option value="" disabled>Selecione...</option>
+              {tasks.phases.map((phase) => (
+                <option key={phase.id} value={phase.id}>
+                  {phase.nome}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Status" name="status" defaultValue={task?.status ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </SelectField>
+            <SelectField label="Prioridade" name="priority" defaultValue={task?.priority ?? ''}>
+              <option value="" disabled>Selecione...</option>
+              {TASK_PRIORITIES.map((priority) => (
+                <option key={priority} value={priority}>
+                  {priority}
+                </option>
+              ))}
+            </SelectField>
           </div>
           <div>
             <Field label="Data de início" name="start" type="date" defaultValue={task?.start} />

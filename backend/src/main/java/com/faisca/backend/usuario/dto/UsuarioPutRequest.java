@@ -17,8 +17,6 @@ public class UsuarioPutRequest {
     @NotBlank(message = "Cargo é obrigatório")
     @Size(max = 45, message = "Cargo deve ter no máximo 45 caracteres")
     private String cargo;
-    @Size(min = 8, max = 72, message = "Senha deve ter entre 8 e 72 caracteres")
-    private String senha;
 
     public String getNome() {
         return nome;
@@ -52,11 +50,4 @@ public class UsuarioPutRequest {
         this.cargo = cargo;
     }
 
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
 }

@@ -13,7 +13,7 @@ const hoursLabel = (hours) => `${hours.toLocaleString('pt-BR')} h`;
  * - "register": formulário de registro de tempo (início, fim e descrição).
  */
 export function TaskDetailModal({ taskId, onClose, startRegistering = false }) {
-  const { items, update } = useTasks();
+  const { items, update, addLog } = useTasks();
   const task = items.find((t) => t.id === taskId);
   const [view, setView] = useState(startRegistering ? 'register' : 'details');
   const [error, setError] = useState('');
@@ -24,17 +24,18 @@ export function TaskDetailModal({ taskId, onClose, startRegistering = false }) {
   const checklist = task.checklist ?? [];
   const isRegistering = view === 'register';
 
-  const toggleItem = (itemId) =>
+  const toggleItem = (itemId) => {
     update(task.id, (t) => ({
       checklist: t.checklist.map((i) => (i.id === itemId ? { ...i, done: !i.done } : i)),
-    }));
+    })).catch(() => setError('Não foi possível atualizar o checklist.'));
+  };
 
   const openRegister = () => {
     setError('');
     setView('register');
   };
 
-  const addLog = (event) => {
+  const saveLog = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
     if (!data.start || !data.end) {
@@ -45,20 +46,12 @@ export function TaskDetailModal({ taskId, onClose, startRegistering = false }) {
       return setError('A data/hora de fim deve ser posterior à de início.');
     }
     setError('');
-    update(task.id, (t) => ({
-      timeLogs: [
-        ...(t.timeLogs ?? []),
-        {
-          id: Date.now(),
-          date: data.start.slice(0, 10),
-          start: data.start,
-          end: data.end,
-          hours,
-          note: data.note,
-        },
-      ],
-    }));
-    setView('details');
+    try {
+      await addLog({ tarefaId: task.id, inicio: data.start, fim: data.end, descricao: data.note });
+      setView('details');
+    } catch {
+      setError('Não foi possível salvar o registro de horas.');
+    }
   };
 
   return (
@@ -108,7 +101,7 @@ export function TaskDetailModal({ taskId, onClose, startRegistering = false }) {
             <h3>
               <Clock3 size={18} /> Tempo dedicado: {hoursLabel(totalHours(task))}
             </h3>
-            <form className="time-form" onSubmit={addLog} noValidate>
+            <form className="time-form" onSubmit={saveLog} noValidate>
               <FormAlert>{error}</FormAlert>
               <div className="time-form-row">
                 <Field label="Data/hora início" name="start" type="datetime-local" />

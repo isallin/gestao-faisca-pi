@@ -59,6 +59,10 @@ public class Tarefa {
     @BatchSize(size = 50)
     private List<RegistroHoras> registrosHoras = new ArrayList<>();
 
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
+    private List<ChecklistItem> checklist = new ArrayList<>();
+
     @ManyToMany
     @JoinTable(name = "colaborador_tarefa",
             joinColumns = @JoinColumn(name = "pkTarefa"),
@@ -80,6 +84,7 @@ public class Tarefa {
 
     public List<StatusTarefa> getHistoricoStatus() { return historicoStatus; }
     public List<RegistroHoras> getRegistrosHoras() { return registrosHoras; }
+    public List<ChecklistItem> getChecklist() { return checklist; }
     public List<Usuario> getColaboradores() { return colaboradores; }
 
     public Integer getId() { return id; }

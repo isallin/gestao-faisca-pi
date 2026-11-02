@@ -17,6 +17,7 @@ public class ProjetoResponse {
     private final String unidadeNumero;
     private final String condominio;
     private final String matricula;
+    private final String cep, logradouro, complemento, bairro, cidade, estado, pais;
     private final LocalDateTime dataInicio;
     private final LocalDateTime dataFim;
     private final String observacao;
@@ -33,6 +34,9 @@ public class ProjetoResponse {
         this.unidadeNumero = projeto.getUnidadeNumero();
         this.condominio = projeto.getCondominio();
         this.matricula = projeto.getMatricula();
+        this.cep = projeto.getCep(); this.logradouro = projeto.getLogradouro();
+        this.complemento = projeto.getComplemento(); this.bairro = projeto.getBairro();
+        this.cidade = projeto.getCidade(); this.estado = projeto.getEstado(); this.pais = projeto.getPais();
         this.dataInicio = projeto.getDataInicio();
         this.dataFim = projeto.getDataFim();
         this.observacao = projeto.getObservacao();
@@ -49,6 +53,13 @@ public class ProjetoResponse {
     public String getUnidadeNumero() { return unidadeNumero; }
     public String getCondominio() { return condominio; }
     public String getMatricula() { return matricula; }
+    public String getCep() { return cep; }
+    public String getLogradouro() { return logradouro; }
+    public String getComplemento() { return complemento; }
+    public String getBairro() { return bairro; }
+    public String getCidade() { return cidade; }
+    public String getEstado() { return estado; }
+    public String getPais() { return pais; }
     public LocalDateTime getDataInicio() { return dataInicio; }
     public LocalDateTime getDataFim() { return dataFim; }
     public String getObservacao() { return observacao; }

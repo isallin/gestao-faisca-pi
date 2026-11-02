@@ -1,4 +1,5 @@
 package com.faisca.backend.cliente.dto;
+import java.util.Map;
 
 
 public class ClienteResponse {
@@ -11,6 +12,7 @@ public class ClienteResponse {
     private String phone;
     private String email;
     private String note;
+    private Map<String, Object> details;
 
     public ClienteResponse(Integer id, String name, String type, String projects, String address, String phone, String email, String note) {
         this.id = id;
@@ -54,4 +56,6 @@ public class ClienteResponse {
     public String getNote() {
         return note;
     }
+    public Map<String, Object> getDetails() { return details; }
+    public void setDetails(Map<String, Object> details) { this.details = details; }
 }

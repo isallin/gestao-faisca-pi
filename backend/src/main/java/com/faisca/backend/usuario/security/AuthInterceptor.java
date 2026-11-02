@@ -2,6 +2,7 @@ package com.faisca.backend.usuario.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
+import com.faisca.backend.usuario.repository.UsuarioRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
@@ -12,9 +13,11 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class AuthInterceptor implements HandlerInterceptor {
     private final JwtUtil jwtUtil;
+    private final UsuarioRepository usuarios;
 
-    public AuthInterceptor(JwtUtil jwtUtil) {
+    public AuthInterceptor(JwtUtil jwtUtil, UsuarioRepository usuarios) {
         this.jwtUtil = jwtUtil;
+        this.usuarios = usuarios;
     }
 
     @Override
@@ -35,7 +38,9 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         try {
             Claims claims = jwtUtil.validar(header.substring(7));
-            request.setAttribute("usuarioId", Integer.valueOf(claims.getSubject()));
+            Integer id = Integer.valueOf(claims.getSubject());
+            if (!usuarios.existsById(id)) return negar(response);
+            request.setAttribute("usuarioId", id);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return negar(response);

@@ -45,6 +45,29 @@ public class ProjetoCadastroRequest {
     @Size(max = 300, message = "Campo observacao deve ter no máximo 300 caracteres")
     private String observacao;
 
+    @Pattern(regexp = "^$|^\\d{5}-?\\d{3}$") private String cep;
+    @Size(max = 200) private String logradouro;
+    @Size(max = 60) private String complemento;
+    @Size(max = 80) private String bairro;
+    @Size(max = 80) private String cidade;
+    @Pattern(regexp = "^$|^[A-Za-z]{2}$") private String estado;
+    @Size(max = 80) private String pais;
+
+    public String getCep() { return cep; }
+    public void setCep(String cep) { this.cep = cep; }
+    public String getLogradouro() { return logradouro; }
+    public void setLogradouro(String logradouro) { this.logradouro = logradouro; }
+    public String getComplemento() { return complemento; }
+    public void setComplemento(String complemento) { this.complemento = complemento; }
+    public String getBairro() { return bairro; }
+    public void setBairro(String bairro) { this.bairro = bairro; }
+    public String getCidade() { return cidade; }
+    public void setCidade(String cidade) { this.cidade = cidade; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
+    public String getPais() { return pais; }
+    public void setPais(String pais) { this.pais = pais; }
+
     @Positive(message = "ID de tarefa/fase deve ser positivo")
     private Integer fkTarefaFase;
 

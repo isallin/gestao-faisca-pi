@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import axios from 'axios';
 import { useClients } from '@/entities/client';
 import { readForm } from '@/shared/lib/read-form';
 import {
   AddressFields,
   Field,
+  SelectField,
   Form,
   FormActions,
   FormAlert,
@@ -45,26 +47,73 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
   const isPerson = type === 'pf';
   const d = detailsOf(client);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = readForm(event.currentTarget);
     const name = isPerson ? `${data.name} ${data.last}`.trim() : data.company;
 
     if (!name) return setError('Informe o nome do cliente para continuar.');
 
-    const record = {
-      name,
-      type: isPerson ? 'Pessoa Física' : 'Pessoa Jurídica',
-      address: `${data.street}, ${data.number} — ${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`,
-      phone: data.phone,
+    const shouldSendRepresentative = Boolean(
+      data.repName || data.repCpf || data.repRole || data.repEmail || data.repPhone,
+    );
+
+    const payload = {
+      tipo: isPerson ? 'PF' : 'PJ',
       email: data.email,
-      note: data.note ?? '',
-      details: data,
+      telefone: data.phone,
+      observacao: data.note,
+      cep: data.zip,
+      logradouro: data.street,
+      numero: data.number,
+      complemento: data.complement,
+      bairro: data.neighborhood,
+      cidade: data.city,
+      estado: data.state,
+      pais: data.country || 'Brasil',
+      ...(isPerson
+        ? {
+          nome: name,
+          cpf: data.cpf,
+          rg: data.rg,
+          dataNascimento: data.birth || null,
+          estadoCivil: data.marital,
+          profissao: data.job,
+        }
+        : {
+          nomeFantasia: data.company,
+          cnpj: data.cnpj,
+          representantes: shouldSendRepresentative
+            ? [
+              {
+                nomeCompleto: data.repName,
+                cpf: data.repCpf,
+                cargo: data.repRole,
+                email: data.repEmail,
+                telefone: data.repPhone,
+              },
+            ]
+            : null,
+        }),
     };
 
-    if (isEditing) update(client.id, record);
-    else add({ id: Date.now(), projects: '—', ...record });
-    onClose();
+    setError('');
+
+    try {
+      if (isEditing) await update(client.id, payload);
+      else await add(payload);
+      onClose();
+    } catch (requestError) {
+      if (axios.isAxiosError(requestError) && requestError.response?.status === 409) {
+        setError('Ja existe um cliente com este documento (CPF/CNPJ).');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
+        setError('Dados invalidos. Revise os campos obrigatorios e tente novamente.');
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 401) {
+        setError('Sessao expirada. Faca login novamente.');
+      } else {
+        setError('Nao foi possivel salvar o cliente no momento.');
+      }
+    }
   };
 
   return (
@@ -82,7 +131,14 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
                 <Field label="Data de Nascimento" name="birth" type="date" defaultValue={d.birth} />
                 <Field label="RG" name="rg" placeholder="00.000.000-0" defaultValue={d.rg} />
                 <Field label="CPF" name="cpf" placeholder="000.000.000-00" defaultValue={d.cpf} />
-                <Field label="Estado civil" name="marital" placeholder="Ex.: Casada" defaultValue={d.marital} />
+                <SelectField
+                  label="Estado civil"
+                  name="marital"
+                  defaultValue={d.marital}
+                  options={['Solteiro', 'Casado', 'Separado', 'Divorciado', 'Viúvo']}
+                >
+                  <option value="">Selecione...</option>
+                </SelectField>
                 <Field label="Profissão" name="job" placeholder="Ex.: Médica" defaultValue={d.job} />
               </>
             ) : (

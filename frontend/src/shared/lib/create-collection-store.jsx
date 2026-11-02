@@ -13,6 +13,7 @@ export function createCollectionStore(initialItems, name) {
       () => ({
         items,
         add: (item) => setItems((list) => [item, ...list]),
+        remove: (id) => setItems((list) => list.filter((item) => item.id !== id)),
         update: (id, patch) =>
           setItems((list) =>
             list.map((item) =>
