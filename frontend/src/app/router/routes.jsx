@@ -5,6 +5,7 @@ import { CollaboratorCreatePage } from '@/pages/collaborator-create';
 import { CollaboratorsPage } from '@/pages/collaborators';
 import { DashboardPage } from '@/pages/dashboard';
 import { EntityEditPage } from '@/pages/entity-edit';
+import { EntityDeletePage } from '@/pages/entity-delete/EntityDeletePage';
 import { LoginPage } from '@/pages/login';
 import { NotFoundPage } from '@/pages/not-found';
 import { ProjectCreatePage } from '@/pages/project-create';
@@ -15,8 +16,10 @@ import { SuppliersPage } from '@/pages/suppliers';
 import { TaskCreatePage } from '@/pages/task-create';
 import { TasksPage } from '@/pages/tasks';
 import { AppShell } from '@/widgets/app-shell';
+import { getAuthToken } from '@/shared/api/auth';
 
 function ShellLayout() {
+  if (!getAuthToken()) return <Navigate to="/login" replace />;
   return (
     <AppShell>
       <Outlet />
@@ -48,6 +51,10 @@ export const routes = [
       { path: '/editar-colaborador/:id', element: <EntityEditPage kind="collaborator" /> },
       { path: '/editar-fornecedor/:id', element: <EntityEditPage kind="supplier" /> },
       { path: '/editar-projeto/:id', element: <EntityEditPage kind="project" /> },
+      { path: '/excluir-tarefa/:id', element: <EntityDeletePage kind="task" /> },
+      { path: '/excluir-cliente/:id', element: <EntityDeletePage kind="client" /> },
+      { path: '/excluir-colaborador/:id', element: <EntityDeletePage kind="collaborator" /> },
+      { path: '/excluir-projeto/:id', element: <EntityDeletePage kind="project" /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useClients } from '@/entities/client';
-import { getAuthToken } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import {
   AddressFields,
@@ -55,22 +54,6 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
 
     if (!name) return setError('Informe o nome do cliente para continuar.');
 
-    if (isEditing) {
-      const record = {
-        name,
-        type: isPerson ? 'Pessoa Física' : 'Pessoa Jurídica',
-        address: `${data.street}, ${data.number} — ${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`,
-        phone: data.phone,
-        email: data.email,
-        note: data.note ?? '',
-        details: data,
-      };
-
-      update(client.id, record);
-      onClose();
-      return;
-    }
-
     const shouldSendRepresentative = Boolean(
       data.repName || data.repCpf || data.repRole || data.repEmail || data.repPhone,
     );
@@ -116,14 +99,9 @@ export function CreateClientForm({ onClose, initialType = 'pf', client }) {
 
     setError('');
 
-    if (!getAuthToken()) {
-      add(payload);
-      onClose();
-      return;
-    }
-
     try {
-      await add(payload);
+      if (isEditing) await update(client.id, payload);
+      else await add(payload);
       onClose();
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 409) {

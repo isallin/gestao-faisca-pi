@@ -28,3 +28,14 @@ export async function createClient(payload) {
   const { data } = await clientHttp.post('/clientes', payload);
   return data;
 }
+export async function getClient(id) {
+  const { data } = await clientHttp.get(`/clientes/${encodeURIComponent(id)}`);
+  return data;
+}
+export async function updateClient(id, payload) {
+  const { data } = await clientHttp.put(`/clientes/${encodeURIComponent(id)}`, payload);
+  return data;
+}
+export async function deleteClient(id) {
+  await clientHttp.delete(`/clientes/${encodeURIComponent(id)}`);
+}

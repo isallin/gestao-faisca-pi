@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import logo from '@/shared/assets/faisca-logo.png';
 import { login } from '@/shared/api/auth';
+import { useClients } from '@/entities/client';
+import { useProjects } from '@/entities/project';
+import { useTasks } from '@/entities/task';
+import { useCollaborators } from '@/entities/collaborator';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { Button, Field, FormAlert } from '@/shared/ui';
 import './LoginPage.css';
@@ -11,6 +15,10 @@ import './LoginPage.css';
 export function LoginPage() {
   usePageTitle('Entrar');
   const navigate = useNavigate();
+  const clients = useClients();
+  const projects = useProjects();
+  const tasks = useTasks();
+  const collaborators = useCollaborators();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,6 +39,7 @@ export function LoginPage() {
 
     try {
       await login({ email, senha });
+      await Promise.all([clients.reload(), projects.reload(), tasks.reload(), collaborators.reload()]);
       navigate('/dashboard');
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 401) {

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import axios from 'axios';
 import { useClients } from '@/entities/client';
 import { useProjects } from '@/entities/project';
-import { getAuthToken } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import {
   AddressFields,
@@ -57,7 +56,7 @@ export function CreateProjectForm({ onClose, project }) {
 
     const payload = {
       clienteId: clientId,
-      codigo: data.code || `PRJ-${Date.now()}`,
+      codigo: data.code,
       relacaoProprietario: '',
       nome: data.name || 'Projeto sem nome',
       tipoImovel: data.propertyType,
@@ -65,8 +64,8 @@ export function CreateProjectForm({ onClose, project }) {
       unidadeNumero: data.number,
       condominio: data.condo,
       matricula: data.registry,
-      dataInicio: data.start ? `${data.start}T00:00:00` : '',
-      dataFim: data.end ? `${data.end}T00:00:00` : '',
+      dataInicio: data.start ? `${data.start}T00:00:00` : null,
+      dataFim: data.end ? `${data.end}T00:00:00` : null,
       observacao: data.note,
       fkTarefaFase: phaseId,
       status: data.status,
@@ -78,27 +77,6 @@ export function CreateProjectForm({ onClose, project }) {
 
     setError('');
 
-    if (!getAuthToken()) {
-      if (isEditing) {
-        update(project.id, {
-          name: data.name,
-          code: data.code,
-          client: clientName,
-          clientId,
-          status: data.status,
-          stage: phaseName,
-          stageId: phaseId,
-          address,
-          note: data.note,
-          details: data,
-        });
-      } else {
-        add(payload);
-      }
-      onClose();
-      return;
-    }
-
     if (!data.name || !data.code || !clientId) {
       setError('Preencha nome, codigo e cliente para continuar.');
       return;
@@ -109,25 +87,9 @@ export function CreateProjectForm({ onClose, project }) {
       return;
     }
 
-    if (isEditing) {
-      update(project.id, {
-        name: data.name,
-        code: data.code,
-        client: clientName,
-        clientId,
-        status: data.status,
-        stage: phaseName,
-        stageId: phaseId,
-        address,
-        note: data.note,
-        details: data,
-      });
-      onClose();
-      return;
-    }
-
     try {
-      await add(payload);
+      if (isEditing) await update(project.id, payload);
+      else await add(payload);
       onClose();
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
@@ -167,7 +129,7 @@ export function CreateProjectForm({ onClose, project }) {
           <AddressFields defaults={d} />
           <div>
             <h3>Status e observação</h3>
-            <SelectField label="Fase" name="phaseId" defaultValue={""}>
+            <SelectField label="Fase" name="phaseId" defaultValue={defaultPhaseId}>
               <option value="" disabled>Selecione...</option>
               {phases.map((phase) => (
                 <option key={phase.id} value={phase.id}>

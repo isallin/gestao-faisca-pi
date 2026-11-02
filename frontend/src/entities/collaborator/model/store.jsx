@@ -1,13 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getAuthToken } from '@/shared/api/auth';
-import { createCollaborator, listCollaborators } from '@/shared/api/collaborator';
-import { initialCollaborators } from './mock';
+import { createCollaborator, deleteCollaborator, listCollaborators, updateCollaborator } from '@/shared/api/collaborator';
 
 const CollaboratorsContext = createContext(null);
 
 export function CollaboratorsProvider({ children }) {
-  const [items, setItems] = useState(initialCollaborators);
-  const [isLoading, setIsLoading] = useState(false);
+  const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(Boolean(getAuthToken()));
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
@@ -36,31 +35,20 @@ export function CollaboratorsProvider({ children }) {
       error,
       reload,
       add: async (payload) => {
-        if (!getAuthToken()) {
-          const localRecord = {
-            id: Date.now(),
-            name: `${payload.nome} ${payload.sobrenome}`.trim(),
-            role: payload.cargo,
-            projects: '',
-            email: payload.email,
-          };
-          setItems((list) => [localRecord, ...list]);
-          return localRecord;
-        }
-
         const created = await createCollaborator(payload);
         const mapped = mapCollaboratorResponse(created);
         setItems((list) => [mapped, ...list]);
         return mapped;
       },
-      update: (id, patch) =>
-        setItems((list) =>
-          list.map((item) =>
-            item.id === id
-              ? { ...item, ...(typeof patch === 'function' ? patch(item) : patch) }
-              : item,
-          ),
-        ),
+      update: async (id, payload) => {
+        const updated = mapCollaboratorResponse(await updateCollaborator(id, payload));
+        setItems((list) => list.map((item) => item.id === id ? updated : item));
+        return updated;
+      },
+      remove: async (id) => {
+        await deleteCollaborator(id);
+        setItems((list) => list.filter((item) => item.id !== id));
+      },
     }),
     [error, isLoading, items, reload],
   );

@@ -28,3 +28,14 @@ export async function createProject(payload) {
   const { data } = await projectHttp.post('/projetos', payload);
   return data;
 }
+export async function getProject(id) {
+  const { data } = await projectHttp.get(`/projetos/${encodeURIComponent(id)}`);
+  return data;
+}
+export async function updateProject(id, payload) {
+  const { data } = await projectHttp.put(`/projetos/${encodeURIComponent(id)}`, payload);
+  return data;
+}
+export async function deleteProject(id) {
+  await projectHttp.delete(`/projetos/${encodeURIComponent(id)}`);
+}

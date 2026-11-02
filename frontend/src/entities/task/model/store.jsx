@@ -2,9 +2,12 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { getAuthToken } from '@/shared/api/auth';
 import {
   createTask,
+  deleteTask,
   listTaskCategories,
   listTaskPhases,
   listTasks,
+  updateTask,
+  updateTaskStatus,
 } from '@/shared/api/task';
 import { listProjects } from '@/shared/api/project';
 
@@ -14,7 +17,7 @@ export function TasksProvider({ children }) {
   const [items, setItems] = useState([]);
   const [categories, setCategories] = useState([]);
   const [phases, setPhases] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(getAuthToken()));
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
@@ -23,22 +26,22 @@ export function TasksProvider({ children }) {
     setIsLoading(true);
     setError('');
     try {
-      const [taskList, categoryList, phaseList] = await Promise.all([
+      const categoryList = await listTaskCategories();
+      setCategories(categoryList);
+      const [taskList, phaseList, projectList] = await Promise.all([
         listTasks(),
-        listTaskCategories(),
         listTaskPhases(),
+        listProjects(),
       ]);
-      const projectList = await listProjects();
 
       const categoriesMap = new Map(categoryList.map((item) => [item.id, item.nome]));
       const phasesMap = new Map(phaseList.map((item) => [item.id, item.nome]));
       const projectCodeMap = new Map(projectList.map((item) => [item.id, item.codigo]));
 
-      setCategories(categoryList);
       setPhases(phaseList);
       setItems(taskList.map((task) => mapTaskResponse(task, categoriesMap, phasesMap, projectCodeMap)));
-    } catch {
-      setError('Nao foi possivel carregar as tarefas.');
+    } catch (cause) {
+      setError(`Nao foi possivel carregar dados de tarefas: ${cause.message}`);
     } finally {
       setIsLoading(false);
     }
@@ -57,12 +60,6 @@ export function TasksProvider({ children }) {
       error,
       reload,
       add: async (payload) => {
-        if (!getAuthToken()) {
-          const localRecord = mapLocalTaskPayload(payload);
-          setItems((list) => [localRecord, ...list]);
-          return localRecord;
-        }
-
         const categoriesMap = new Map(categories.map((item) => [item.id, item.nome]));
         const phasesMap = new Map(phases.map((item) => [item.id, item.nome]));
         const created = await createTask(payload);
@@ -73,14 +70,23 @@ export function TasksProvider({ children }) {
         setItems((list) => [mapped, ...list]);
         return mapped;
       },
-      update: (id, patch) =>
-        setItems((list) =>
-          list.map((item) =>
-            item.id === id
-              ? { ...item, ...(typeof patch === 'function' ? patch(item) : patch) }
-              : item,
-          ),
-        ),
+      update: async (id, patch) => {
+        const current = items.find((item) => item.id === id);
+        if (!current) throw new Error('Tarefa não encontrada');
+        const changes = typeof patch === 'function' ? patch(current) : patch;
+        if (changes.projetoId && changes.categoriaId && changes.fkTarefaFase) {
+          const updated = await updateTask(id, changes);
+          const mapped = mapTaskResponse(updated, new Map(categories.map((c) => [c.id, c.nome])), new Map(phases.map((p) => [p.id, p.nome])), new Map());
+          setItems((list) => list.map((item) => item.id === id ? { ...item, ...mapped, project: changes.project } : item));
+          return mapped;
+        }
+        if (changes.status && changes.status !== current.status) await updateTaskStatus(id, changes.status);
+        setItems((list) => list.map((item) => item.id === id ? { ...item, ...changes } : item));
+      },
+      remove: async (id) => {
+        await deleteTask(id);
+        setItems((list) => list.filter((item) => item.id !== id));
+      },
     }),
     [categories, error, isLoading, items, phases, reload],
   );
@@ -117,28 +123,6 @@ function mapTaskResponse(task, categoriesMap, phasesMap, projectCodeMap) {
   };
 }
 
-function mapLocalTaskPayload(payload) {
-  return {
-    id: Date.now(),
-    name: payload.nome,
-    projectId: payload.projetoId,
-    clientId: payload.clienteId,
-    categoryId: payload.categoriaId,
-    stageId: payload.fkTarefaFase,
-    project: payload.project,
-    member: payload.member,
-    start: onlyDate(payload.dataInicioPrev),
-    end: onlyDate(payload.dataFimPrev),
-    status: payload.status,
-    priority: payload.prioridade,
-    category: payload.category,
-    stage: payload.stage,
-    note: payload.observacao || '',
-    done: payload.status === 'Concluído',
-    checklist: payload.checklist || [],
-    timeLogs: [],
-  };
-}
 
 function onlyDate(dateTime) {
   return dateTime ? String(dateTime).slice(0, 10) : '';
