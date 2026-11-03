@@ -1,4 +1,5 @@
 package com.faisca.backend.tarefa.dto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.faisca.backend.tarefa.entity.Tarefa;
 
@@ -8,23 +9,26 @@ import com.faisca.backend.tarefa.entity.ChecklistItem;
 
 public class TarefaResponse {
 
-    private final Integer id;
-    private final Integer projetoId;
-    private final Integer clienteId;
-    private final Integer categoriaId;
-    private final Integer fkTarefaFase;
-    private final String nome;
-    private final String prioridade;
-    private final LocalDateTime dataInicioPrev;
-    private final LocalDateTime dataFimPrev;
-    private final LocalDateTime dataInicioReal;
-    private final LocalDateTime dataFimReal;
-    private final String observacao;
-    private final String status;
-    private final Integer colaboradorId;
-    private final List<ChecklistResponse> checklist;
+    @Schema(description = "ID da tarefa", example = "1") private final Integer id;
+    @Schema(description = "ID do projeto", example = "1") private final Integer projetoId;
+    @Schema(description = "ID do cliente do projeto", example = "1") private final Integer clienteId;
+    @Schema(description = "ID da categoria", example = "1") private final Integer categoriaId;
+    @Schema(description = "ID da fase", example = "1") private final Integer fkTarefaFase;
+    @Schema(description = "Nome", example = "Revisar planta") private final String nome;
+    @Schema(description = "Prioridade", allowableValues = {"Baixa", "Média", "Alta", "Crítica"}, example = "Alta") private final String prioridade;
+    @Schema(description = "Início previsto, horário local ISO 8601", example = "2026-11-02T09:00:00") private final LocalDateTime dataInicioPrev;
+    @Schema(description = "Fim previsto, horário local ISO 8601", example = "2026-11-10T18:00:00") private final LocalDateTime dataFimPrev;
+    @Schema(description = "Início real, horário local ISO 8601", example = "2026-11-03T09:00:00") private final LocalDateTime dataInicioReal;
+    @Schema(description = "Fim real, horário local ISO 8601", example = "2026-11-09T18:00:00") private final LocalDateTime dataFimReal;
+    @Schema(description = "Observação", example = "Confirmar medidas") private final String observacao;
+    @Schema(description = "Status atual", example = "Pendente") private final String status;
+    @Schema(description = "ID do primeiro colaborador ou nulo", example = "1") private final Integer colaboradorId;
+    @Schema(description = "Itens de checklist") private final List<ChecklistResponse> checklist;
 
-    public record ChecklistResponse(Integer id, String text, boolean done) {
+    public record ChecklistResponse(
+            @Schema(description = "ID do item", example = "1") Integer id,
+            @Schema(description = "Texto do item", example = "Conferir medidas") String text,
+            @Schema(description = "Concluído", example = "false") boolean done) {
         public ChecklistResponse(ChecklistItem item) { this(item.getId(), item.getText(), item.isDone()); }
     }
 

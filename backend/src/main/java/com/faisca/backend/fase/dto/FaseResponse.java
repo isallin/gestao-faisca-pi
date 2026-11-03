@@ -1,12 +1,13 @@
 package com.faisca.backend.fase.dto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import com.faisca.backend.fase.entity.Fase;
 
 public class FaseResponse {
 
-    private final Integer id;
-    private final String nome;
-    private final Integer ordem;
+    @Schema(description = "ID da fase", example = "1") private final Integer id;
+    @Schema(description = "Nome da fase", example = "Planejamento") private final String nome;
+    @Schema(description = "Ordem de exibição", example = "1") private final Integer ordem;
 
     public FaseResponse(Fase fase) {
         this.id = fase.getId();

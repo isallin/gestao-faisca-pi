@@ -1,13 +1,14 @@
 package com.faisca.backend.dashboard.dto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class TarefasPorMesResponse {
 
-    private String key;
-    private String month;
-    private Integer done;
-    private Integer pending;
-    private Integer late;
-    private Integer total;
+    @Schema(description = "Chave do mês", example = "2026-11") private String key;
+    @Schema(description = "Nome abreviado do mês", example = "nov") private String month;
+    @Schema(description = "Concluídas", example = "3") private Integer done;
+    @Schema(description = "Pendentes", example = "4") private Integer pending;
+    @Schema(description = "Atrasadas", example = "1") private Integer late;
+    @Schema(description = "Total", example = "8") private Integer total;
 
     public TarefasPorMesResponse(String key, String month, Integer done, Integer pending, Integer late, Integer total) {
         this.key = key;
