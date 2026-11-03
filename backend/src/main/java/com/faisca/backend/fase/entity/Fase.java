@@ -1,4 +1,5 @@
 package com.faisca.backend.fase.entity;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import jakarta.persistence.*;
 
@@ -7,14 +8,17 @@ import jakarta.persistence.*;
 public class Fase {
 
     @Id
+    @Schema(description = "ID da fase", example = "1")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idfase")
     private Integer id;
 
     @Column(name = "nome", length = 80)
+    @Schema(description = "Nome da fase", example = "Planejamento")
     private String nome;
 
     @Column(name = "ordem")
+    @Schema(description = "Ordem de exibição", example = "1")
     private Integer ordem;
 
     public Integer getId() { return id; }

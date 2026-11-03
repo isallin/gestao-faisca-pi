@@ -1,10 +1,11 @@
 package com.faisca.backend.dashboard.dto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class KpiTarefasResponse {
 
-    private Integer value;
-    private Integer total;
-    private Integer percent;
+    @Schema(description = "Quantidade no indicador", example = "4") private Integer value;
+    @Schema(description = "Total considerado", example = "10") private Integer total;
+    @Schema(description = "Porcentagem", example = "40") private Integer percent;
 
     public KpiTarefasResponse(Integer value, Integer total, Integer percent) {
         this.value = value;

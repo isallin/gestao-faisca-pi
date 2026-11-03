@@ -6,6 +6,11 @@ import com.faisca.backend.usuario.dto.UsuarioResponse;
 import com.faisca.backend.usuario.entity.Usuario;
 import com.faisca.backend.usuario.repository.UsuarioRepository;
 import com.faisca.backend.usuario.security.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Autenticação", description = "Emissão de token JWT")
 public class AuthController {
     private final UsuarioRepository repository;
     private final JwtUtil jwtUtil;
@@ -27,6 +33,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @Operation(summary = "Entrar", description = "Valida e-mail e senha e retorna token Bearer e dados do usuário.")
+    @ApiResponse(responseCode = "200", description = "Autenticação realizada", content = @Content(schema = @Schema(implementation = LoginResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Dados obrigatórios ausentes ou inválidos")
+    @ApiResponse(responseCode = "401", description = "Credenciais incorretas")
     public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
         Optional<Usuario> teste = repository.findByEmail(request.getEmail().trim().toLowerCase());
 

@@ -1,23 +1,29 @@
 package com.faisca.backend.usuario.dto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import jakarta.validation.constraints.*;
 
 public class UsuarioCadastroRequest {
 
     @NotBlank(message = "Nome é obrigatório")
+    @Schema(description = "Nome", example = "Ana", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 70, message = "Nome deve ter no máximo 70 caracteres")
     private String nome;
     @NotBlank(message = "Sobrenome é obrigatório")
+    @Schema(description = "Sobrenome", example = "Silva", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 45, message = "Sobrenome deve ter no máximo 45 caracteres")
     private String sobrenome;
     @NotBlank(message = "E-mail é obrigatório")
+    @Schema(description = "E-mail único", example = "ana@empresa.com", requiredMode = Schema.RequiredMode.REQUIRED)
     @Email(message = "E-mail inválido")
     @Size(max = 45, message = "E-mail deve ter no máximo 45 caracteres")
     private String email;
     @NotBlank(message = "Cargo é obrigatório")
+    @Schema(description = "Cargo informado no cadastro; não é papel de autorização", example = "Arquiteta", requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(max = 45, message = "Cargo deve ter no máximo 45 caracteres")
     private String cargo;
     @NotBlank(message = "Senha é obrigatória")
+    @Schema(description = "Senha de 8 a 72 caracteres", format = "password", accessMode = Schema.AccessMode.WRITE_ONLY, requiredMode = Schema.RequiredMode.REQUIRED)
     @Size(min = 8, max = 72, message = "Senha deve ter entre 8 e 72 caracteres")
     private String senha;
 
