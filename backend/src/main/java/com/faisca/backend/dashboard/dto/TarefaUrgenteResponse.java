@@ -1,12 +1,13 @@
 package com.faisca.backend.dashboard.dto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public class TarefaUrgenteResponse {
 
-    private Integer id;
-    private String name;
-    private String project;
-    private String member;
-    private String priority;
+    @Schema(description = "ID da tarefa", example = "1") private Integer id;
+    @Schema(description = "Nome da tarefa", example = "Revisar planta") private String name;
+    @Schema(description = "Projeto", example = "Reforma Central") private String project;
+    @Schema(description = "Colaborador", example = "Ana Silva") private String member;
+    @Schema(description = "Prioridade", example = "Alta") private String priority;
 
     public TarefaUrgenteResponse(Integer id, String name, String project, String member, String priority) {
         this.id = id;
