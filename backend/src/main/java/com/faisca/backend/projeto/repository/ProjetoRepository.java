@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface ProjetoRepository extends JpaRepository<Projeto, Integer> {
     List<Projeto> findAllByOrderByCodigoAsc();
+    List<Projeto> findByCriadoPor(Integer criadoPor);
 }

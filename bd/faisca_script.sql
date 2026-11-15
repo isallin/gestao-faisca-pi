@@ -87,6 +87,7 @@ CREATE TABLE projeto (
     data_inicio DATETIME,
     data_fim DATETIME,
     observacao VARCHAR(300),
+    criadoPor INT NULL,
     fkTarefaFase INT,
     CONSTRAINT fk_projeto_cliente FOREIGN KEY (fkCliente) REFERENCES cliente(id) ON DELETE CASCADE,
     CONSTRAINT fk_projeto_fase FOREIGN KEY (fkTarefaFase) REFERENCES fase(idfase) ON DELETE SET NULL
@@ -109,6 +110,7 @@ CREATE TABLE tarefa (
     data_inicio_real DATETIME,
     data_fim_real DATETIME,
     observacao VARCHAR(300),
+    criadoPor INT NULL,
     CONSTRAINT fk_tarefa_projeto FOREIGN KEY (fkProjeto) REFERENCES projeto(id) ON DELETE CASCADE,
     CONSTRAINT fk_tarefa_categoria FOREIGN KEY (fkTarefaCategoria) REFERENCES tarefa_categoria(id),
     CONSTRAINT fk_tarefa_fase FOREIGN KEY (fkTarefaFase) REFERENCES fase(idfase)
@@ -127,6 +129,7 @@ CREATE TABLE registro_horas (
     hora_inicio DATETIME,
     hora_fim DATETIME,
     descricao VARCHAR(300),
+    criadoPor INT NULL,
     CONSTRAINT fk_registro_horas_tarefa FOREIGN KEY (fkTarefa) REFERENCES tarefa(id) ON DELETE CASCADE
 );
 
@@ -149,6 +152,25 @@ CREATE TABLE tarefa_checklist (
     texto VARCHAR(200) NOT NULL,
     concluido BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_checklist_tarefa FOREIGN KEY (fkTarefa) REFERENCES tarefa(id) ON DELETE CASCADE
+);
+
+CREATE TABLE google_token (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    fkUsuario INT NOT NULL UNIQUE,
+    access_token VARCHAR(2048),
+    refresh_token VARCHAR(2048),
+    expira_em BIGINT,
+    CONSTRAINT fk_google_token_usuario FOREIGN KEY (fkUsuario) REFERENCES usuario(id) ON DELETE CASCADE
+);
+
+CREATE TABLE google_event (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    tipo VARCHAR(20) NOT NULL,
+    fkOrigem INT NOT NULL,
+    fkUsuario INT NOT NULL,
+    google_event_id VARCHAR(255) NOT NULL,
+    UNIQUE KEY uq_google_event (tipo, fkOrigem, fkUsuario),
+    CONSTRAINT fk_google_event_usuario FOREIGN KEY (fkUsuario) REFERENCES usuario(id) ON DELETE CASCADE
 );
 
 CREATE TABLE colaborador_tarefa (

@@ -1,5 +1,8 @@
 package com.faisca.backend.tarefa.service;
 
+import com.faisca.backend.calendario.service.CalendarSyncService;
+import com.faisca.backend.calendario.service.EventoCalendario;
+import com.faisca.backend.calendario.service.SyncCalendarioEvent;
 import com.faisca.backend.fase.entity.Fase;
 import com.faisca.backend.fase.repository.FaseRepository;
 import com.faisca.backend.projeto.repository.ProjetoRepository;
@@ -21,8 +24,9 @@ public class TarefaService {
     private final TarefaCategoriaRepository categorias;
     private final FaseRepository fases;
     private final UsuarioRepository usuarios;
-    public TarefaService(TarefaRepository repository, ProjetoRepository projetos, TarefaCategoriaRepository categorias, FaseRepository fases, UsuarioRepository usuarios) {
-        this.repository = repository; this.projetos = projetos; this.categorias = categorias; this.fases = fases; this.usuarios = usuarios;
+    private final CalendarSyncService calendario;
+    public TarefaService(TarefaRepository repository, ProjetoRepository projetos, TarefaCategoriaRepository categorias, FaseRepository fases, UsuarioRepository usuarios, CalendarSyncService calendario) {
+        this.repository = repository; this.projetos = projetos; this.categorias = categorias; this.fases = fases; this.usuarios = usuarios; this.calendario = calendario;
     }
     @Transactional(readOnly = true)
     public List<TarefaResponse> listar() { return repository.findAll().stream().map(TarefaResponse::new).toList(); }
@@ -32,27 +36,40 @@ public class TarefaService {
     public List<TarefaCategoria> listarCategorias() { return categorias.findAll(); }
     @Transactional(readOnly = true)
     public List<Fase> listarFases() { return fases.findAll(); }
-    public TarefaResponse criar(TarefaCadastroRequest r) {
+    public TarefaResponse criar(TarefaCadastroRequest r, Integer usuarioId) {
         Tarefa tarefa = new Tarefa();
         preencher(tarefa, r);
+        tarefa.setCriadoPor(usuarioId);
         tarefa.adicionarStatus(novoStatus(r.getStatus()));
-        return new TarefaResponse(repository.saveAndFlush(tarefa));
+        TarefaResponse response = new TarefaResponse(repository.saveAndFlush(tarefa));
+        calendario.publicarCriacao(SyncCalendarioEvent.TipoEntidade.TAREFA, tarefa.getId(), usuarioId, EventoCalendario.deTarefa(tarefa));
+        return response;
     }
     public TarefaResponse atualizar(Integer id, TarefaCadastroRequest r) {
         Tarefa tarefa = obter(id);
         preencher(tarefa, r);
         if (!r.getStatus().equals(tarefa.getStatusAtual())) tarefa.adicionarStatus(novoStatus(r.getStatus()));
-        return new TarefaResponse(repository.saveAndFlush(tarefa));
+        TarefaResponse response = new TarefaResponse(repository.saveAndFlush(tarefa));
+        calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.TAREFA, id, EventoCalendario.deTarefa(tarefa));
+        return response;
     }
     public TarefaResponse atualizarStatus(Integer id, TarefaStatusRequest r) {
         Tarefa tarefa = obter(id);
         if (!r.getStatus().equals(tarefa.getStatusAtual())) {
             tarefa.adicionarStatus(novoStatus(r.getStatus()));
             repository.saveAndFlush(tarefa);
+            calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.TAREFA, id, EventoCalendario.deTarefa(tarefa));
         }
         return new TarefaResponse(tarefa);
     }
-    public void excluir(Integer id) { repository.delete(obter(id)); }
+    public void excluir(Integer id) {
+        Tarefa tarefa = obter(id);
+        for (RegistroHoras registro : tarefa.getRegistrosHoras()) {
+            calendario.publicarExclusao(SyncCalendarioEvent.TipoEntidade.REGISTRO_HORAS, registro.getId());
+        }
+        repository.delete(tarefa);
+        calendario.publicarExclusao(SyncCalendarioEvent.TipoEntidade.TAREFA, id);
+    }
     private Tarefa obter(Integer id) {
         return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada"));
     }

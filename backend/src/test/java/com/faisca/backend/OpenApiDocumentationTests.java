@@ -55,7 +55,8 @@ class OpenApiDocumentationTests {
 
         String[] paths = {"/api/auth/login", "/api/usuarios", "/api/clientes", "/api/projetos",
                 "/api/tarefas", "/api/tarefas/categorias", "/api/tarefas/fases", "/api/registros",
-                "/api/fases", "/api/dashboard", "/api/fornecedores"};
+                "/api/fases", "/api/dashboard", "/api/fornecedores", "/api/calendar/status",
+                "/api/calendar/connect", "/api/calendar/callback", "/api/calendar/conexao"};
         for (String path : paths) assertTrue(spec.path("paths").has(path), path);
         int operationCount = 0;
         var pathEntries = spec.path("paths").fields();
@@ -72,7 +73,7 @@ class OpenApiDocumentationTests {
                 assertTrue(doc.path("tags").size() >= 1, pathEntry.getKey() + " " + operation.getKey());
             }
         }
-        assertEquals(37, operationCount);
+        assertEquals(41, operationCount);
         assertEquals("Autenticação", spec.path("paths").path("/api/auth/login").path("post").path("tags").get(0).asText());
         assertEquals("Clientes", spec.path("paths").path("/api/clientes").path("get").path("tags").get(0).asText());
         assertTrue(spec.path("paths").path("/api/clientes").path("get").path("security").get(0).has("bearerAuth"));

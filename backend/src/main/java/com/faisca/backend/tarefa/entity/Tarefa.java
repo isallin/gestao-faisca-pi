@@ -50,6 +50,10 @@ public class Tarefa {
     @Column(name = "observacao", length = 300)
     private String observacao;
 
+    /** Usuário que criou a tarefa (dono do evento no Google Calendar). */
+    @Column(name = "criadoPor")
+    private Integer criadoPor;
+
     @OneToMany(mappedBy = "tarefa", cascade = CascadeType.PERSIST)
     @OrderBy("id DESC")
     @BatchSize(size = 50)
@@ -109,4 +113,6 @@ public class Tarefa {
     public void setDataFimReal(LocalDateTime dataFimReal) { this.dataFimReal = dataFimReal; }
     public String getObservacao() { return observacao; }
     public void setObservacao(String observacao) { this.observacao = observacao; }
+    public Integer getCriadoPor() { return criadoPor; }
+    public void setCriadoPor(Integer criadoPor) { this.criadoPor = criadoPor; }
 }

@@ -7,4 +7,5 @@ import java.util.List;
 public interface TarefaRepository extends JpaRepository<Tarefa, Integer> {
     boolean existsByProjetoId(Integer projetoId);
     List<Tarefa> findByProjetoCodigo(String codigo);
+    List<Tarefa> findByCriadoPor(Integer criadoPor);
 }
