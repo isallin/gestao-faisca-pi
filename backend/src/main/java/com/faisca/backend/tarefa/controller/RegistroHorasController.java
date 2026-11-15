@@ -1,5 +1,8 @@
 package com.faisca.backend.tarefa.controller;
 
+import com.faisca.backend.calendario.service.CalendarSyncService;
+import com.faisca.backend.calendario.service.EventoCalendario;
+import com.faisca.backend.calendario.service.SyncCalendarioEvent;
 import com.faisca.backend.tarefa.dto.*;
 import com.faisca.backend.tarefa.entity.RegistroHoras;
 import com.faisca.backend.tarefa.repository.*;
@@ -25,8 +28,9 @@ import java.util.List;
 public class RegistroHorasController {
     private final RegistroHorasRepository registros;
     private final TarefaRepository tarefas;
-    public RegistroHorasController(RegistroHorasRepository registros, TarefaRepository tarefas) {
-        this.registros = registros; this.tarefas = tarefas;
+    private final CalendarSyncService calendario;
+    public RegistroHorasController(RegistroHorasRepository registros, TarefaRepository tarefas, CalendarSyncService calendario) {
+        this.registros = registros; this.tarefas = tarefas; this.calendario = calendario;
     }
 
     @GetMapping
@@ -49,8 +53,9 @@ public class RegistroHorasController {
     @ApiResponse(responseCode = "401", description = "Token ausente ou inválido")
     @ApiResponse(responseCode = "404", description = "Tarefa não encontrada")
     @Transactional
-    public ResponseEntity<RegistroHorasResponse> criar(@Valid @RequestBody RegistroHorasRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(salvar(new RegistroHoras(), request));
+    public ResponseEntity<RegistroHorasResponse> criar(@Valid @RequestBody RegistroHorasRequest request,
+                                                       @RequestAttribute("usuarioId") Integer usuarioId) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvar(new RegistroHoras(), request, usuarioId));
     }
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar registro de horas", description = "Altera tarefa, intervalo e descrição de um registro.")
@@ -60,7 +65,7 @@ public class RegistroHorasController {
     @ApiResponse(responseCode = "404", description = "Registro ou tarefa não encontrada")
     @Transactional
     public RegistroHorasResponse atualizar(@PathVariable Integer id, @Valid @RequestBody RegistroHorasRequest request) {
-        return salvar(obter(id), request);
+        return salvar(obter(id), request, null);
     }
     @DeleteMapping("/{id}")
     @Operation(summary = "Excluir registro de horas", description = "Remove um apontamento pelo ID.")
@@ -69,18 +74,28 @@ public class RegistroHorasController {
     @ApiResponse(responseCode = "404", description = "Registro não encontrado")
     @Transactional
     public ResponseEntity<Void> excluir(@PathVariable Integer id) {
-        registros.delete(obter(id)); return ResponseEntity.noContent().build();
+        registros.delete(obter(id));
+        calendario.publicarExclusao(SyncCalendarioEvent.TipoEntidade.REGISTRO_HORAS, id);
+        return ResponseEntity.noContent().build();
     }
     private RegistroHoras obter(Integer id) {
         return registros.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Registro não encontrado"));
     }
-    private RegistroHorasResponse salvar(RegistroHoras registro, RegistroHorasRequest request) {
+    private RegistroHorasResponse salvar(RegistroHoras registro, RegistroHorasRequest request, Integer usuarioId) {
+        boolean novo = registro.getId() == null;
         if (!request.fim().isAfter(request.inicio()))
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fim deve ser posterior ao início");
         registro.setTarefa(tarefas.findById(request.tarefaId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Tarefa não encontrada")));
         registro.setHoraInicio(request.inicio()); registro.setHoraFim(request.fim());
         registro.setDescricao(request.descricao());
-        return new RegistroHorasResponse(registros.save(registro));
+        if (novo && usuarioId != null) registro.setCriadoPor(usuarioId);
+        RegistroHoras salvo = registros.save(registro);
+        if (novo) {
+            calendario.publicarCriacao(SyncCalendarioEvent.TipoEntidade.REGISTRO_HORAS, salvo.getId(), usuarioId, EventoCalendario.deRegistro(salvo));
+        } else {
+            calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.REGISTRO_HORAS, salvo.getId(), EventoCalendario.deRegistro(salvo));
+        }
+        return new RegistroHorasResponse(salvo);
     }
 }

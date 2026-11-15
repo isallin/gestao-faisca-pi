@@ -24,6 +24,10 @@ public class RegistroHoras {
     @Column(name = "descricao", length = 300)
     private String descricao;
 
+    /** Usuário que criou o registro (dono do evento no Google Calendar). */
+    @Column(name = "criadoPor")
+    private Integer criadoPor;
+
     public Integer getId() { return id; }
     public Tarefa getTarefa() { return tarefa; }
     public void setTarefa(Tarefa tarefa) { this.tarefa = tarefa; }
@@ -33,4 +37,6 @@ public class RegistroHoras {
     public void setHoraFim(LocalDateTime horaFim) { this.horaFim = horaFim; }
     public String getDescricao() { return descricao; }
     public void setDescricao(String descricao) { this.descricao = descricao; }
+    public Integer getCriadoPor() { return criadoPor; }
+    public void setCriadoPor(Integer criadoPor) { this.criadoPor = criadoPor; }
 }

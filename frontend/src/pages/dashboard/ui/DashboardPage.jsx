@@ -12,6 +12,7 @@ import { useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { SelectField } from '@/shared/ui';
 import { computeDashboard } from '../lib/dashboard-metrics';
+import { GoogleCalendarCard } from './GoogleCalendarCard';
 import { KpiCard } from './KpiCard';
 import './DashboardPage.css';
 
@@ -103,6 +104,8 @@ export function DashboardPage() {
           percent={hours.percent}
         />
       </section>
+
+      <GoogleCalendarCard />
 
       <section className="dash-grid">
         <div className="dash-panel urgent">
