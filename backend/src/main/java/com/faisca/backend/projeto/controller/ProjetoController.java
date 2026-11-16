@@ -42,8 +42,9 @@ public class ProjetoController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos ou fim anterior ao início")
     @ApiResponse(responseCode = "401", description = "Token ausente ou inválido")
     @ApiResponse(responseCode = "404", description = "Cliente ou fase não encontrado")
-    public ResponseEntity<ProjetoResponse> cadastrar(@RequestBody @Valid ProjetoCadastroRequest request) {
-        return ResponseEntity.status(201).body(service.criar(request));
+    public ResponseEntity<ProjetoResponse> cadastrar(@RequestBody @Valid ProjetoCadastroRequest request,
+                                                     @RequestAttribute("usuarioId") Integer usuarioId) {
+        return ResponseEntity.status(201).body(service.criar(request, usuarioId));
     }
 
     @PutMapping("/{id}")

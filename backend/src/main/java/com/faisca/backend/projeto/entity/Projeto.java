@@ -60,6 +60,10 @@ public class Projeto {
     @Column(name = "observacao", length = 300)
     private String observacao;
 
+    /** Usuário que criou o projeto (dono do evento no Google Calendar). */
+    @Column(name = "criadoPor")
+    private Integer criadoPor;
+
     @Column(name = "fkTarefaFase")
     private Integer fkTarefaFase;
 
@@ -117,5 +121,8 @@ public class Projeto {
 
     public Integer getFkTarefaFase() { return fkTarefaFase; }
     public void setFkTarefaFase(Integer fkTarefaFase) { this.fkTarefaFase = fkTarefaFase; }
+
+    public Integer getCriadoPor() { return criadoPor; }
+    public void setCriadoPor(Integer criadoPor) { this.criadoPor = criadoPor; }
 
 }

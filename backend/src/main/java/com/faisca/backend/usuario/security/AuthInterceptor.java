@@ -27,7 +27,8 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         if (metodo.equals("OPTIONS")
                 || caminho.equals("/api/auth/login")
-                || (caminho.equals("/api/usuarios") && metodo.equals("POST"))) {
+                || (caminho.equals("/api/usuarios") && metodo.equals("POST"))
+                || (caminho.equals("/api/calendar/callback") && metodo.equals("GET"))) {
             return true;
         }
 

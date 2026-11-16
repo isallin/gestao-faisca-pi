@@ -1,5 +1,8 @@
 package com.faisca.backend.projeto.service;
 
+import com.faisca.backend.calendario.service.CalendarSyncService;
+import com.faisca.backend.calendario.service.EventoCalendario;
+import com.faisca.backend.calendario.service.SyncCalendarioEvent;
 import com.faisca.backend.cliente.repository.ClienteRepository;
 import com.faisca.backend.fase.repository.FaseRepository;
 import com.faisca.backend.projeto.dto.*;
@@ -19,27 +22,36 @@ public class ProjetoService {
     private final ClienteRepository clientes;
     private final FaseRepository fases;
     private final TarefaRepository tarefas;
-    public ProjetoService(ProjetoRepository repository, ClienteRepository clientes, FaseRepository fases, TarefaRepository tarefas) {
-        this.repository = repository; this.clientes = clientes; this.fases = fases; this.tarefas = tarefas;
+    private final CalendarSyncService calendario;
+    public ProjetoService(ProjetoRepository repository, ClienteRepository clientes, FaseRepository fases, TarefaRepository tarefas, CalendarSyncService calendario) {
+        this.repository = repository; this.clientes = clientes; this.fases = fases; this.tarefas = tarefas; this.calendario = calendario;
     }
     @Transactional(readOnly = true)
     public List<ProjetoResponse> listar() { return repository.findAllByOrderByCodigoAsc().stream().map(ProjetoResponse::new).toList(); }
     @Transactional(readOnly = true)
     public ProjetoResponse buscar(Integer id) { return new ProjetoResponse(obter(id)); }
-    public ProjetoResponse criar(ProjetoCadastroRequest request) {
+    public ProjetoResponse criar(ProjetoCadastroRequest request, Integer usuarioId) {
         Projeto projeto = new Projeto();
         preencher(projeto, request);
-        return new ProjetoResponse(repository.save(projeto));
+        projeto.setCriadoPor(usuarioId);
+        ProjetoResponse response = new ProjetoResponse(repository.save(projeto));
+        EventoCalendario.deProjeto(projeto).ifPresent(dados ->
+                calendario.publicarCriacao(SyncCalendarioEvent.TipoEntidade.PROJETO, projeto.getId(), usuarioId, dados));
+        return response;
     }
     public ProjetoResponse atualizar(Integer id, ProjetoCadastroRequest request) {
         Projeto projeto = obter(id);
         preencher(projeto, request);
-        return new ProjetoResponse(repository.save(projeto));
+        ProjetoResponse response = new ProjetoResponse(repository.save(projeto));
+        EventoCalendario.deProjeto(projeto).ifPresent(dados ->
+                calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.PROJETO, id, dados));
+        return response;
     }
     public void excluir(Integer id) {
         Projeto projeto = obter(id);
         if (tarefas.existsByProjetoId(id)) throw new ResponseStatusException(HttpStatus.CONFLICT, "Projeto possui tarefas");
         repository.delete(projeto);
+        calendario.publicarExclusao(SyncCalendarioEvent.TipoEntidade.PROJETO, id);
     }
     private Projeto obter(Integer id) {
         return repository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Projeto não encontrado"));

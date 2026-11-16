@@ -33,6 +33,21 @@
 .donut.teal { background: conic-gradient(var(--info) var(--progress), var(--neutral) 0); }
 
 .dash-grid { flex: 1; display: grid; grid-template-columns: 5fr 7fr; gap: 24px; margin-top: 24px; }
+
+.calendar-card { margin-top: 24px; }
+.calendar-card .calendar-status {
+  padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600;
+  color: var(--muted-foreground); background: var(--surface);
+}
+.calendar-card .calendar-status.on { color: var(--success); background: color-mix(in oklab, var(--success) 15%, var(--panel)); }
+.calendar-card .calendar-hint { color: var(--muted-foreground); margin-bottom: 12px; max-width: 720px; }
+.calendar-card .calendar-message { display: block; color: var(--foreground); margin-bottom: 10px; }
+.calendar-btn {
+  display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--primary);
+  color: var(--primary-foreground, #fff); font-weight: 600; cursor: pointer;
+}
+.calendar-btn:disabled { opacity: 0.6; cursor: default; }
 .dash-grid > .dash-panel { display: flex; flex-direction: column; }
 .dash-panel {
   background: var(--panel); border-radius: 16px; padding: 20px;
