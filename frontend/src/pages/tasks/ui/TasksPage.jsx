@@ -12,6 +12,7 @@ import {
   FilterFields,
   initialFilterValues,
 } from '@/widgets/entity-list';
+import { GoogleCalendarChip } from './GoogleCalendarChip';
 import { TaskCalendar } from './TaskCalendar';
 import { TaskDetailModal } from './TaskDetailModal';
 import { TaskGantt } from './TaskGantt';
@@ -94,6 +95,7 @@ export function TasksPage() {
   const filtered = useMemo(() => applyFilters(sorted, filters, values), [sorted, filters, values]);
 
   const modeSwitch = <Segmented options={MODES} value={mode} onChange={setMode} />;
+  const calendarChip = <GoogleCalendarChip />;
   const modal = selected && (
     <TaskDetailModal
       key={`${selected.id}-${selected.register}`}
@@ -118,7 +120,12 @@ export function TasksPage() {
           filters={filters}
           filterValues={values}
           onFilterChange={changeFilter}
-          headerExtra={modeSwitch}
+          headerExtra={
+            <>
+              {calendarChip}
+              {modeSwitch}
+            </>
+          }
           detailFooter={(task) => (
             <>
               <span>
@@ -141,7 +148,10 @@ export function TasksPage() {
   return (
     <>
       <header className="tasks-head">
-        <h1>Tarefas</h1>
+        <div className="tasks-title">
+          <h1>Tarefas</h1>
+          {calendarChip}
+        </div>
         <div className="tasks-button">
           <Button variant="ghost" onClick={reload}>
             Recarregar

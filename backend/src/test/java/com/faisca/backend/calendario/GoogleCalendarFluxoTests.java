@@ -75,19 +75,20 @@ class GoogleCalendarFluxoTests {
         String url = mapper.readTree(connect.body()).path("url").asText();
         assertTrue(url.contains("accounts.google.com"), url);
         assertTrue(url.contains("state="), url);
+        assertTrue(url.contains("prompt=consent"), url);
         String state = url.substring(url.indexOf("state=") + 6);
         if (state.contains("&")) state = state.substring(0, state.indexOf('&'));
 
         // callback com state válido: como o código é falso, o Google rejeita e volta ?google=error
         HttpResponse<String> callback = send("GET", "/api/calendar/callback?code=codigofalso&state=" + state, null, null);
         assertEquals(302, callback.statusCode());
-        assertTrue(callback.headers().firstValue("Location").orElse("").endsWith("/?google=error"),
+        assertTrue(callback.headers().firstValue("Location").orElse("").endsWith("/tarefa?google=error"),
                 callback.headers().firstValue("Location").orElse(""));
 
         // callback com state forjado também cai no erro
         HttpResponse<String> forjado = send("GET", "/api/calendar/callback?code=codigofalso&state=forjado", null, null);
         assertEquals(302, forjado.statusCode());
-        assertTrue(forjado.headers().firstValue("Location").orElse("").endsWith("/?google=error"));
+        assertTrue(forjado.headers().firstValue("Location").orElse("").endsWith("/tarefa?google=error"));
 
         // CRUD com Google desconectado: sync é no-op e nada quebra
         HttpResponse<String> cliente = send("POST", "/api/clientes",
@@ -127,5 +128,14 @@ class GoogleCalendarFluxoTests {
 
         // desconectar responde 204 mesmo sem estar conectado
         assertEquals(204, send("DELETE", "/api/calendar/conexao", null, token).statusCode());
+
+        // regressão: desconectar COM token salvo remove o vínculo (o delete derivado exige transação)
+        int usuarioId = ((Number) em.createNativeQuery("SELECT id FROM usuario WHERE email = 'ana@empresa.com'")
+                .getSingleResult()).intValue();
+        jdbc.execute("INSERT INTO google_token (fkUsuario, access_token, refresh_token, expira_em) VALUES ("
+                + usuarioId + ", 'acesso-falso', 'refresh-falso', " + (System.currentTimeMillis() + 3_600_000) + ")");
+        assertEquals(1L, ((Number) em.createNativeQuery("SELECT COUNT(*) FROM google_token").getSingleResult()).longValue());
+        assertEquals(204, send("DELETE", "/api/calendar/conexao", null, token).statusCode());
+        assertEquals(0L, ((Number) em.createNativeQuery("SELECT COUNT(*) FROM google_token").getSingleResult()).longValue());
     }
 }

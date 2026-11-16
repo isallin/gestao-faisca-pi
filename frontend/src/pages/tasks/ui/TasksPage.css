@@ -1,5 +1,29 @@
 .tasks-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
+.tasks-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .tasks-button {display: flex;}
+
+/* Card compacto de integração com o Google Calendar (ao lado do título) */
+.gcal-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent);
+  font-size: 13px; white-space: nowrap;
+}
+.gcal-chip > svg { color: var(--muted-foreground); }
+.gcal-name { font-weight: 600; }
+.gcal-status { display: inline-flex; align-items: center; gap: 6px; color: var(--muted-foreground); }
+.gcal-status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.gcal-status.on { color: var(--success); }
+.gcal-message { color: var(--muted-foreground); max-width: 220px; white-space: normal; }
+.gcal-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 12px; border: none; border-radius: 999px;
+  font-size: 11px; font-weight: 600; line-height: 1.7; cursor: pointer;
+}
+.gcal-btn.on { background: color-mix(in oklab, var(--success) 22%, white); color: color-mix(in oklab, var(--success) 55%, black); }
+.gcal-btn.off { background: color-mix(in oklab, var(--destructive) 15%, white); color: color-mix(in oklab, var(--destructive) 60%, black); }
+.gcal-btn:disabled { opacity: 0.6; cursor: default; }
 .tasks-layout { display: grid; grid-template-columns: minmax(280px, 4fr) minmax(560px, 8fr); gap: 24px; }
 .task-list-column > .btn { width: 100%; margin-bottom: 12px; }
 .task-list { background: var(--panel); border-radius: 16px; padding: 12px; display: grid; gap: 12px; max-height: 700px; overflow: auto; }

@@ -13,9 +13,15 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.calendar.Calendar;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpRequest;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -27,6 +33,7 @@ public class GoogleAuthService {
 
     private static final List<String> SCOPES = List.of("https://www.googleapis.com/auth/calendar");
     private static final String TOKEN_SERVER_URL = "https://oauth2.googleapis.com/token";
+    private static final String REVOKE_URL = "https://oauth2.googleapis.com/revoke";
 
     @Value("${google.client.id}")
     private String clientId;
@@ -56,6 +63,8 @@ public class GoogleAuthService {
         return flow.newAuthorizationUrl()
                 .setRedirectUri(redirectUri)
                 .setState(jwtUtil.gerarStateGoogle(usuarioId))
+                // Sempre mostra a página do Google ao (re)conectar e garante refresh_token novo.
+                .set("prompt", "consent")
                 .build();
     }
 
@@ -83,8 +92,31 @@ public class GoogleAuthService {
         return usuarioId != null && tokens.findByUsuarioId(usuarioId).isPresent();
     }
 
+    @Transactional
     public void desconectar(Integer usuarioId) {
+        // Limpa o cache da autorização no Google (melhor esforço): sem isso o próximo
+        // "Conectar" seria aprovado automaticamente sem passar pela página do Google.
+        tokens.findByUsuarioId(usuarioId).ifPresent(this::revogarNoGoogle);
         tokens.deleteByUsuarioId(usuarioId);
+    }
+
+    /** Revoga a autorização no Google; falha de rede/Google nunca impede a desconexão local. */
+    private void revogarNoGoogle(GoogleToken token) {
+        String alvo = token.getRefreshToken() != null ? token.getRefreshToken() : token.getAccessToken();
+        if (alvo == null) return;
+        try {
+            HttpRequest pedido = HttpRequest.newBuilder()
+                    .uri(URI.create(REVOKE_URL))
+                    .timeout(Duration.ofSeconds(5))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.ofString(
+                            "token=" + URLEncoder.encode(alvo, StandardCharsets.UTF_8)))
+                    .build();
+            java.net.http.HttpClient.newHttpClient()
+                    .send(pedido, java.net.http.HttpResponse.BodyHandlers.discarding());
+        } catch (Exception e) {
+            // sem internet ou revogação recusada: o vínculo local é removido mesmo assim
+        }
     }
 
     /** Cliente da Calendar API autenticado como o usuário (renova o token se estiver perto de expirar). */
