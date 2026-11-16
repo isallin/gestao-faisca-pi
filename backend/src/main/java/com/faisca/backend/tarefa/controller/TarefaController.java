@@ -40,8 +40,9 @@ public class TarefaController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos ou datas incoerentes")
     @ApiResponse(responseCode = "401", description = "Token ausente ou inválido")
     @ApiResponse(responseCode = "404", description = "Projeto, categoria, fase ou colaborador não encontrado")
-    public ResponseEntity<TarefaResponse> cadastrar(@RequestBody @Valid TarefaCadastroRequest request) {
-        return ResponseEntity.status(201).body(service.criar(request));
+    public ResponseEntity<TarefaResponse> cadastrar(@RequestBody @Valid TarefaCadastroRequest request,
+                                                    @RequestAttribute("usuarioId") Integer usuarioId) {
+        return ResponseEntity.status(201).body(service.criar(request, usuarioId));
     }
     @PutMapping("/{id}")
     @Operation(summary = "Atualizar tarefa", description = "Substitui dados, checklist e status de uma tarefa.")
