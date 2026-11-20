@@ -18,7 +18,7 @@ import './AppShell.css';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/tarefa', label: 'Tarefas', icon: CalendarCheck2 },
+  { to: '/tarefa?view=monthly', label: 'Tarefas', icon: CalendarCheck2 },
   { to: '/registros', label: 'Registros', icon: ClipboardClock },
   { to: '/clientes', label: 'Clientes', icon: ContactRound },
   { to: '/fornecedores', label: 'Fornecedores', icon: Handshake },

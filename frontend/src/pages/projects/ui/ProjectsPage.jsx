@@ -23,10 +23,23 @@ const FILTERS = [
   },
 ];
 
+const formatDate = (iso) => (iso ? iso.split('-').reverse().join('/') : 'Não informado');
+
+const formatArea = (value) => {
+  if (value === undefined || value === null || value === '') return 'Não informado';
+  return `${Number(value).toLocaleString('pt-BR')} m²`;
+};
+
 const detail = (project, clientsById) => [
   { label: 'Cliente', value: project.client ?? clientsById.get(project.clientId) ?? 'Não informado' },
   { label: 'Etapa', value: project.stage },
   { label: 'Local', value: project.address },
+  { label: 'Tipo de imóvel', value: project.details?.propertyType || 'Não informado' },
+  { label: 'Metragem', value: formatArea(project.details?.area) },
+  { label: 'Condomínio', value: project.details?.condo || 'Não informado' },
+  { label: 'CEP', value: project.details?.zip || 'Não informado' },
+  { label: 'Data de início', value: formatDate(project.start) },
+  { label: 'Data de fim', value: formatDate(project.end) },
   { label: 'Observação', value: project.note },
 ];
 
