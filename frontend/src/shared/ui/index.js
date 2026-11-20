@@ -10,3 +10,4 @@ export { CheckRail } from './check-rail';
 export { FormAlert } from './form-alert';
 export { Form, FormColumns, FormPair, FormActions } from './form-layout';
 export { AddressFields } from './address-fields';
+export { DatePickerField, DateRangeFilterField } from './date-picker';

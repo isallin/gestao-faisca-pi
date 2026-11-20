@@ -1,8 +1,18 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CalendarDays, Filter } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { CalendarDays, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { addMonths, endOfMonth, format, startOfMonth } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { DayPicker } from 'react-day-picker';
 import { useProjects } from '@/entities/project';
-import { formatDate, sortTasks, totalHours, useTasks } from '@/entities/task';
+import {
+  buildGanttTasks,
+  formatDate,
+  sortTasks,
+  toTimelineTask,
+  totalHours,
+  useTasks,
+} from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { Button, FilterPanel, Segmented } from '@/shared/ui';
 import {
@@ -18,6 +28,7 @@ import { TaskDetailModal } from './TaskDetailModal';
 import { TaskGantt } from './TaskGantt';
 import { TaskList } from './TaskList';
 import './TasksPage.css';
+import 'react-day-picker/dist/style.css';
 
 const MODES = [
   { value: 'monthly', label: 'Mensal' },
@@ -27,6 +38,8 @@ const MODES = [
 
 const STATUSES = ['Pendente', 'Em andamento', 'Concluído'];
 const PRIORITIES = ['Crítica', 'Alta', 'Média', 'Baixa'];
+
+const initialMode = (param) => (param === 'weekly' || param === 'list' ? param : 'monthly');
 
 const optionsOf = (values, allLabel) => [
   { value: ALL, label: allLabel },
@@ -45,6 +58,7 @@ const detail = (task) => {
     { label: 'Responsável', value: task.member },
     { label: 'Status', value: task.status },
     { label: 'Prioridade', value: task.priority },
+    { label: 'Fase', value: task.stage },
     { label: 'Categoria', value: task.category },
     {
       label: 'Checklist',
@@ -57,12 +71,29 @@ const detail = (task) => {
 export function TasksPage() {
   usePageTitle('Tarefas');
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { items: tasks, isLoading, error, reload } = useTasks();
   const { items: projects } = useProjects();
-  const [mode, setMode] = useState('monthly');
+  const [mode, setMode] = useState(() => initialMode(searchParams.get('view')));
   const [filterOpen, setFilterOpen] = useState(false);
   const [selected, setSelected] = useState();
+  const [selectedMonth, setSelectedMonth] = useState(() => startOfMonth(new Date()));
+  const [monthPickerOpen, setMonthPickerOpen] = useState(false);
+  const monthPickerRef = useRef(null);
   const openDetails = (id) => setSelected({ id, register: false });
+
+  useEffect(() => {
+    setMode(initialMode(searchParams.get('view')));
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (!monthPickerOpen) return undefined;
+    const closeOnOutside = (event) => {
+      if (!monthPickerRef.current?.contains(event.target)) setMonthPickerOpen(false);
+    };
+    document.addEventListener('mousedown', closeOnOutside);
+    return () => document.removeEventListener('mousedown', closeOnOutside);
+  }, [monthPickerOpen]);
 
   const filters = useMemo(
     () => [
@@ -90,9 +121,39 @@ export function TasksPage() {
   const [values, setValues] = useState(() => initialFilterValues(filters));
   const changeFilter = (key, value) => setValues((v) => ({ ...v, [key]: value }));
 
+  useEffect(() => {
+    setValues((current) => {
+      const next = { ...current };
+      filters.forEach((filter) => {
+        if (next[filter.key] === undefined) next[filter.key] = filter.initialValue ?? ALL;
+      });
+      return next;
+    });
+  }, [filters]);
+
   // Ordem das listas: data de início e, em seguida, prioridade.
   const sorted = useMemo(() => sortTasks(tasks), [tasks]);
   const filtered = useMemo(() => applyFilters(sorted, filters, values), [sorted, filters, values]);
+  const monthFiltered = useMemo(
+    () =>
+      filtered.filter((task) => {
+        const endDate = toTimelineTask(task).endDate;
+        return endDate && endDate.getMonth() === selectedMonth.getMonth() && endDate.getFullYear() === selectedMonth.getFullYear();
+      }),
+    [filtered, selectedMonth],
+  );
+  const ganttTasks = useMemo(() => buildGanttTasks(monthFiltered), [monthFiltered]);
+  const monthLabel = useMemo(() => {
+    const value = format(selectedMonth, "LLLL 'de' yyyy", { locale: ptBR });
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  }, [selectedMonth]);
+
+  const monthStart = startOfMonth(selectedMonth);
+  const monthEnd = endOfMonth(selectedMonth);
+  const updateSelectedMonth = (date) => setSelectedMonth(startOfMonth(date));
+  const currentYear = new Date().getFullYear();
+  const pickerStartMonth = new Date(currentYear - 5, 0, 1);
+  const pickerEndMonth = new Date(currentYear + 5, 11, 1);
 
   const modeSwitch = <Segmented options={MODES} value={mode} onChange={setMode} />;
   const calendarChip = <GoogleCalendarChip />;
@@ -163,35 +224,78 @@ export function TasksPage() {
         </div>
       </header>
 
-      <section className="tasks-layout">
-        <aside className="task-list-column">
-          <TaskList tasks={filtered} onSelect={openDetails} />
-        </aside>
+      <section className={mode === 'weekly' ? 'tasks-layout tasks-layout-weekly' : 'tasks-layout'}>
+        <header className="tasks-visual-head">
+          <h2 className="month-title" ref={monthPickerRef}>
+              <Button
+                variant="icon"
+                aria-label="Mês anterior"
+                onClick={() => setSelectedMonth((value) => startOfMonth(addMonths(value, -1)))}
+              >
+                <ChevronLeft />
+              </Button>
+            <button
+              type="button"
+              className="month-picker-trigger"
+              onClick={() => setMonthPickerOpen((value) => !value)}
+              aria-label="Selecionar mês"
+            >
+              <CalendarDays /> {monthLabel}
+            </button>
+              <Button
+                variant="icon"
+                aria-label="Próximo mês"
+                onClick={() => setSelectedMonth((value) => startOfMonth(addMonths(value, 1)))}
+              >
+                <ChevronRight />
+              </Button>
+            {monthPickerOpen && (
+              <div className="month-picker-popover" role="dialog" aria-modal="false">
+                <DayPicker
+                  mode="single"
+                  locale={ptBR}
+                  month={selectedMonth}
+                  selected={selectedMonth}
+                  startMonth={pickerStartMonth}
+                  endMonth={pickerEndMonth}
+                  captionLayout="dropdown"
+                  onMonthChange={updateSelectedMonth}
+                  onSelect={(date) => {
+                    if (!date) return;
+                    updateSelectedMonth(date);
+                    setMonthPickerOpen(false);
+                  }}
+                />
+              </div>
+            )}
+          </h2>
+
+          <Button
+            variant="icon"
+            onClick={() => setFilterOpen((v) => !v)}
+            aria-label="Filtrar tarefas"
+          >
+            <Filter />
+          </Button>
+        </header>
+
+        <FilterPanel open={filterOpen} className="tasks-visual-filter">
+          <FilterFields filters={filters} values={values} onChange={changeFilter} />
+        </FilterPanel>
+
+        {mode !== 'weekly' && (
+          <aside className="task-list-column">
+            <TaskList tasks={filtered} onSelect={openDetails} />
+          </aside>
+        )}
 
         <div className="calendar-column">
-          <header>
-            <h2>
-              <CalendarDays /> Agosto de 2026
-            </h2>
-
-            <Button
-              variant="icon"
-              onClick={() => setFilterOpen((v) => !v)}
-              aria-label="Filtrar tarefas"
-            >
-              <Filter />
-            </Button>
-          </header>
-
-          <FilterPanel open={filterOpen}>
-            <FilterFields filters={filters} values={values} onChange={changeFilter} />
-          </FilterPanel>
           {!isLoading && error && <p className="task-empty">{error}</p>}
           {isLoading && <p className="task-empty">Carregando tarefas...</p>}
           {mode === 'monthly' ? (
-            <TaskCalendar tasks={filtered} onSelect={openDetails} />
+            <TaskCalendar tasks={monthFiltered} month={selectedMonth} onSelect={openDetails} />
           ) : (
-            <TaskGantt tasks={filtered} onSelect={openDetails} />
+            <TaskGantt tasks={ganttTasks} start={monthStart} end={monthEnd} onSelect={openDetails} />
           )}
         </div>
       </section>

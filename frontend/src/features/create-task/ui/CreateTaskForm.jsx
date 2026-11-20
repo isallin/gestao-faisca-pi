@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { Plus, X } from 'lucide-react';
-import { useClients } from '@/entities/client';
 import { useCollaborators } from '@/entities/collaborator';
 import { useProjects } from '@/entities/project';
 import { TASK_PRIORITIES, useTasks } from '@/entities/task';
 import { readForm } from '@/shared/lib/read-form';
 import {
   Button,
+  DatePickerField,
   Field,
   Form,
   FormActions,
@@ -21,7 +21,6 @@ import './CreateTaskForm.css';
 /** task: quando informada, o formulário entra em modo de edição. */
 export function CreateTaskForm({ onClose, task }) {
   const tasks = useTasks();
-  const clients = useClients().items;
   const collaborators = useCollaborators().items;
   const projects = useProjects().items;
   const [error, setError] = useState('');
@@ -45,7 +44,6 @@ export function CreateTaskForm({ onClose, task }) {
     }
 
     const project = projects.find((item) => item.code === data.project);
-    const client = clients.find((item) => item.name === data.client);
     const category = tasks.categories.find((item) => item.nome === data.category);
     const phaseId = Number(data.phaseId || task?.stageId || tasks.phases[0]?.id || 0) || null;
     const phaseName = tasks.phases.find((item) => item.id === phaseId)?.nome ?? task?.stage;
@@ -54,7 +52,7 @@ export function CreateTaskForm({ onClose, task }) {
     const payload = {
       projetoId: project?.id,
       colaboradorId: member?.id ?? null,
-      clienteId: client?.id ?? project?.clientId,
+      clienteId: project?.clientId,
       categoriaId: category?.id,
       fkTarefaFase: phaseId,
       nome: data.name,
@@ -114,14 +112,6 @@ export function CreateTaskForm({ onClose, task }) {
               ))}
             </SelectField>
             <Field label="Nome" name="name" placeholder="Ex.: Revisar planta de iluminação" defaultValue={task?.name} />
-            <SelectField label="Cliente" name="client" defaultValue={task?.client ?? ''}>
-              <option value="" disabled>Selecione...</option>
-              {clients.map((c) => (
-                <option key={c.id ?? c.name} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </SelectField>
             <SelectField label="Projeto" name="project" defaultValue={task?.project ?? ''}>
               <option value="" disabled>Selecione...</option>
               {projects.map((p) => (
@@ -164,8 +154,8 @@ export function CreateTaskForm({ onClose, task }) {
             </SelectField>
           </div>
           <div>
-            <Field label="Data de início" name="start" type="date" defaultValue={task?.start} />
-            <Field label="Data do fim" name="end" type="date" defaultValue={task?.end} />
+            <DatePickerField label="Data de início" name="start" defaultValue={task?.start} />
+            <DatePickerField label="Data do fim" name="end" defaultValue={task?.end} />
             <Field label="Observações" name="note" textarea placeholder="Detalhes, contatos, pendências..." defaultValue={task?.note} />
 
             <fieldset className="checklist-field">

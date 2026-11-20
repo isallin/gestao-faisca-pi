@@ -10,7 +10,7 @@ import { ALL } from '@/shared/ui/multi-select';
 export { ALL };
 
 export const initialFilterValues = (filters = []) =>
-  Object.fromEntries(filters.map((f) => [f.key, ALL]));
+  Object.fromEntries(filters.map((f) => [f.key, f.initialValue ?? ALL]));
 
 const passes = (row, filter, value) => {
   if (value === undefined || value === ALL) return true;
