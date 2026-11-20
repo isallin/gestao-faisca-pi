@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
+import { IMaskInput } from 'react-imask';
 import { useClients } from '@/entities/client';
 import { useProjects } from '@/entities/project';
 import { readForm } from '@/shared/lib/read-form';
 import {
-  AddressFields,
   Field,
   Form,
   FormActions,
@@ -15,6 +15,94 @@ import {
 } from '@/shared/ui';
 
 const PROPERTY = ['Residencial', 'Comercial', 'Industrial', 'Rural', 'Terreno', 'Outro'];
+const CEP_REGEX = /^\d{5}-?\d{3}$/;
+const UF_REGEX = /^[A-Za-z]{2}$/;
+
+const blank = (value) => !String(value ?? '').trim();
+const onlyDigits = (value) => String(value ?? '').replace(/\D/g, '');
+
+function MaskedField({ label, className = 'field', mask, ...props }) {
+  return (
+    <label className={className}>
+      <span>{label}</span>
+      <IMaskInput className="input" mask={mask} {...props} />
+    </label>
+  );
+}
+
+function isValidArea(value) {
+  if (blank(value)) return true;
+  const normalized = String(value).trim().replace(',', '.');
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return false;
+  const [integer, fraction = ''] = normalized.split('.');
+  return integer.length <= 8 && fraction.length <= 2;
+}
+
+function validateProjectForm(data, clientId, phaseId) {
+  if (!clientId) return 'Cliente é obrigatório';
+  if (clientId <= 0) return 'ID do cliente deve ser positivo';
+
+  if (blank(data.code)) return 'Código é obrigatório';
+  if (data.code.trim().length > 45) return 'Código deve ter no máximo 45 caracteres';
+
+  if (blank(data.name)) return 'Nome é obrigatório';
+  if (data.name.trim().length > 150) return 'Nome deve ter no máximo 150 caracteres';
+
+  if (!blank(data.propertyType) && data.propertyType.trim().length > 45) {
+    return 'Campo tipoImovel deve ter no máximo 45 caracteres';
+  }
+
+  if (!blank(data.area)) {
+    const normalized = String(data.area).trim().replace(',', '.');
+    const area = Number(normalized);
+    if (Number.isNaN(area)) return 'Área deve ter até 8 dígitos inteiros e 2 decimais';
+    if (area < 0) return 'Área não pode ser negativa';
+    if (!isValidArea(normalized)) return 'Área deve ter até 8 dígitos inteiros e 2 decimais';
+  }
+
+  if (!blank(data.number) && data.number.trim().length > 20) {
+    return 'Campo unidadeNumero deve ter no máximo 20 caracteres';
+  }
+  if (!blank(data.condo) && data.condo.trim().length > 100) {
+    return 'Campo condominio deve ter no máximo 100 caracteres';
+  }
+  if (!blank(data.registry) && data.registry.trim().length > 50) {
+    return 'Campo matricula deve ter no máximo 50 caracteres';
+  }
+
+  if (!blank(data.note) && data.note.trim().length > 300) {
+    return 'Campo observacao deve ter no máximo 300 caracteres';
+  }
+
+  if (!blank(data.zip) && !CEP_REGEX.test(data.zip.trim())) return 'CEP inválido';
+  if (!blank(data.street) && data.street.trim().length > 200) return 'Logradouro inválido';
+  if (!blank(data.complement) && data.complement.trim().length > 60) return 'Complemento inválido';
+  if (!blank(data.neighborhood) && data.neighborhood.trim().length > 80) return 'Bairro inválido';
+  if (!blank(data.city) && data.city.trim().length > 80) return 'Cidade inválida';
+  if (!blank(data.state) && !UF_REGEX.test(data.state.trim())) return 'Use a sigla da UF (ex.: SP)';
+  if (!blank(data.country) && data.country.trim().length > 80) return 'País inválido';
+
+  if (phaseId && phaseId <= 0) return 'ID de tarefa/fase deve ser positivo';
+
+  if (data.end && data.start && data.end < data.start) return 'Fim anterior ao início';
+
+  return '';
+}
+
+function extractBackendMessage(requestError) {
+  const payload = requestError?.response?.data;
+  if (typeof payload === 'string' && payload.trim()) return payload;
+  if (payload?.message) return payload.message;
+  if (Array.isArray(payload?.errors) && payload.errors.length > 0) {
+    const first = payload.errors[0];
+    return first?.defaultMessage || first?.message || '';
+  }
+  if (payload?.errors && typeof payload.errors === 'object') {
+    const first = Object.values(payload.errors)[0];
+    return Array.isArray(first) ? first[0] : first;
+  }
+  return '';
+}
 
 /** Valores iniciais a partir de um projeto existente (edição). */
 function detailsOf(project) {
@@ -32,12 +120,66 @@ export function CreateProjectForm({ onClose, project }) {
   const { add, update, phases } = useProjects();
   const clients = useClients().items;
   const isEditing = Boolean(project);
-  const d = detailsOf(project);
+  const d = useMemo(() => detailsOf(project), [project]);
   const [error, setError] = useState('');
+  const [zip, setZip] = useState(d.zip ?? '');
+  const [street, setStreet] = useState(d.street ?? '');
+  const [neighborhood, setNeighborhood] = useState(d.neighborhood ?? '');
+  const [city, setCity] = useState(d.city ?? '');
+  const [stateCode, setStateCode] = useState(d.state ?? '');
+  const lastZipLookup = useRef('');
   const defaultClientId = String(
     project?.clientId ?? clients.find((client) => client.name === project?.client)?.id ?? clients[0]?.id ?? '',
   );
   const defaultPhaseId = String(project?.stageId ?? phases[0]?.id ?? '');
+
+  useEffect(() => {
+    setZip(d.zip ?? '');
+    setStreet(d.street ?? '');
+    setNeighborhood(d.neighborhood ?? '');
+    setCity(d.city ?? '');
+    setStateCode(d.state ?? '');
+    lastZipLookup.current = '';
+  }, [d]);
+
+  useEffect(() => {
+    const digits = onlyDigits(zip);
+    if (digits.length !== 8 || lastZipLookup.current === digits) return;
+
+    lastZipLookup.current = digits;
+    let active = true;
+
+    const loadAddress = async () => {
+      try {
+        const response = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+        const data = await response.json();
+
+        if (!active || data?.erro) {
+          setStreet('');
+          setNeighborhood('');
+          setCity('');
+          setStateCode('');
+          return;
+        }
+
+        setStreet(data?.logradouro || '');
+        setNeighborhood(data?.bairro || '');
+        setCity(data?.localidade || '');
+        setStateCode(data?.uf || '');
+      } catch {
+        if (!active) return;
+        setStreet('');
+        setNeighborhood('');
+        setCity('');
+        setStateCode('');
+      }
+    };
+
+    loadAddress();
+    return () => {
+      active = false;
+    };
+  }, [zip]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -48,10 +190,9 @@ export function CreateProjectForm({ onClose, project }) {
     const clientName = clients.find((client) => client.id === clientId)?.name ?? project?.client;
     const phaseName = phases.find((phase) => phase.id === phaseId)?.nome ?? project?.stage;
     const address = `${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`;
-    if (!data.name) return setError('Preencha o nome do projeto para continuar.');
-    if (data.end < data.start) {
-      return setError('Não foi possível salvar: a data de término não pode ser anterior à de início.');
-    }
+
+    const validationError = validateProjectForm(data, clientId, phaseId);
+    if (validationError) return setError(validationError);
 
     const payload = {
       clienteId: clientId,
@@ -59,7 +200,7 @@ export function CreateProjectForm({ onClose, project }) {
       relacaoProprietario: '',
       nome: data.name || 'Projeto sem nome',
       tipoImovel: data.propertyType,
-      areaM2: data.area ? Number(data.area) : null,
+      areaM2: data.area ? Number(String(data.area).replace(',', '.')) : null,
       unidadeNumero: data.number,
       condominio: data.condo,
       matricula: data.registry,
@@ -78,13 +219,8 @@ export function CreateProjectForm({ onClose, project }) {
 
     setError('');
 
-    if (!data.name || !data.code || !clientId) {
-      setError('Preencha nome, codigo e cliente para continuar.');
-      return;
-    }
-
     if (!phaseId) {
-      setError('Selecione uma fase para continuar.');
+      setError('ID de tarefa/fase deve ser positivo');
       return;
     }
 
@@ -96,7 +232,8 @@ export function CreateProjectForm({ onClose, project }) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
         setError('Cliente nao encontrado no backend.');
       } else if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
-        setError('Dados invalidos. Confira os campos e tente novamente.');
+        const backendMessage = extractBackendMessage(requestError);
+        setError(backendMessage || 'Dados invalidos. Confira os campos e tente novamente.');
       } else {
         setError('Nao foi possivel salvar o projeto no momento.');
       }
@@ -127,7 +264,53 @@ export function CreateProjectForm({ onClose, project }) {
             <Field label="Condomínio" name="condo" placeholder="Nome do condomínio (se houver)" defaultValue={d.condo} />
             <Field label="Matrícula" name="registry" placeholder="Nº da matrícula do imóvel" defaultValue={d.registry} />
           </div>
-          <AddressFields defaults={d} />
+          <div>
+            <h3>Endereço</h3>
+            <MaskedField
+              label="CEP"
+              name="zip"
+              placeholder="00000-000"
+              value={zip}
+              onAccept={(value) => setZip(String(value ?? ''))}
+              mask="00000-000"
+            />
+            <Field
+              label="Logradouro"
+              name="street"
+              placeholder="Rua, avenida..."
+              value={street}
+              onChange={(event) => setStreet(event.target.value)}
+            />
+            <Field label="Número" name="number" placeholder="Ex.: 248" defaultValue={d.number} />
+            <Field
+              label="Complemento"
+              name="complement"
+              placeholder="Apto, bloco, sala..."
+              defaultValue={d.complement}
+            />
+            <Field
+              label="Bairro"
+              name="neighborhood"
+              placeholder="Ex.: Pinheiros"
+              value={neighborhood}
+              onChange={(event) => setNeighborhood(event.target.value)}
+            />
+            <Field
+              label="Cidade"
+              name="city"
+              placeholder="Ex.: São Paulo"
+              value={city}
+              onChange={(event) => setCity(event.target.value)}
+            />
+            <Field
+              label="Estado"
+              name="state"
+              placeholder="Ex.: SP"
+              value={stateCode}
+              onChange={(event) => setStateCode(event.target.value)}
+            />
+            <Field label="País" name="country" defaultValue={d.country ?? 'Brasil'} />
+          </div>
           <div>
             <h3>Status e observação</h3>
             <SelectField label="Fase" name="phaseId" defaultValue={defaultPhaseId}>
