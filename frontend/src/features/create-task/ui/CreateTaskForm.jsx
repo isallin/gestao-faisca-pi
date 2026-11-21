@@ -7,7 +7,6 @@ import { TASK_PRIORITIES, useTasks } from '@/entities/task';
 import { readForm } from '@/shared/lib/read-form';
 import {
   Button,
-  DatePickerField,
   Field,
   Form,
   FormActions,
@@ -154,8 +153,8 @@ export function CreateTaskForm({ onClose, task }) {
             </SelectField>
           </div>
           <div>
-            <DatePickerField label="Data de início" name="start" defaultValue={task?.start} />
-            <DatePickerField label="Data do fim" name="end" defaultValue={task?.end} />
+            <Field label="Data de início" name="start" type="date" defaultValue={task?.start} />
+            <Field label="Data do fim" name="end" type="date" defaultValue={task?.end} />
             <Field label="Observações" name="note" textarea placeholder="Detalhes, contatos, pendências..." defaultValue={task?.note} />
 
             <fieldset className="checklist-field">

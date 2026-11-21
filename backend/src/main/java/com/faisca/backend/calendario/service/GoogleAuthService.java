@@ -73,6 +73,10 @@ public class GoogleAuthService {
         GoogleTokenResponse resposta = new GoogleAuthorizationCodeTokenRequest(
                 new NetHttpTransport(), GsonFactory.getDefaultInstance(),
                 TOKEN_SERVER_URL, clientId, clientSecret, code, redirectUri)
+                .setRequestInitializer(request -> {
+                    request.setConnectTimeout(5_000);
+                    request.setReadTimeout(5_000);
+                })
                 .execute();
 
         GoogleToken token = tokens.findByUsuarioId(usuarioId).orElseGet(() -> {
@@ -122,8 +126,11 @@ public class GoogleAuthService {
     /** Cliente da Calendar API autenticado como o usuário (renova o token se estiver perto de expirar). */
     public Calendar obterCalendar(Integer usuarioId) throws IOException {
         String accessToken = obterAccessToken(usuarioId);
-        HttpRequestInitializer initializer =
-                request -> request.getHeaders().setAuthorization("Bearer " + accessToken);
+        HttpRequestInitializer initializer = request -> {
+            request.getHeaders().setAuthorization("Bearer " + accessToken);
+            request.setConnectTimeout(5_000);
+            request.setReadTimeout(5_000);
+        };
         return new Calendar.Builder(new NetHttpTransport(), GsonFactory.getDefaultInstance(), initializer)
                 .setApplicationName("Faisca Arquitetura")
                 .build();
@@ -144,6 +151,10 @@ public class GoogleAuthService {
         GoogleTokenResponse resposta = new GoogleRefreshTokenRequest(
                 new NetHttpTransport(), GsonFactory.getDefaultInstance(),
                 clientId, clientSecret, token.getRefreshToken())
+                .setRequestInitializer(request -> {
+                    request.setConnectTimeout(5_000);
+                    request.setReadTimeout(5_000);
+                })
                 .execute();
         token.setAccessToken(resposta.getAccessToken());
         long validadeSegundos = resposta.getExpiresInSeconds() != null ? resposta.getExpiresInSeconds() : 3600L;
