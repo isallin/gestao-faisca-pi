@@ -3,7 +3,7 @@ import { useProjects } from '@/entities/project';
 import { formatDate, useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { readForm } from '@/shared/lib/read-form';
-import { Field, FormAlert, Modal, Button } from '@/shared/ui';
+import { Field, Form, FormActions, FormAlert, FormPair, Modal, SelectField } from '@/shared/ui';
 import { ALL, EntityList } from '@/widgets/entity-list';
 import { collectRecords, formatDateTime, formatHours } from '../lib/records';
 
@@ -83,19 +83,21 @@ export function RecordsPage() {
       emptyMessage="Nenhum registro de tempo encontrado."
     />
     {editing && <Modal title={editing.id ? 'Editar registro' : 'Novo registro'} onClose={() => setEditing(null)}>
-      <form onSubmit={save}>
+      <Form onSubmit={save}>
         <FormAlert>{error}</FormAlert>
-        <label>Tarefa
-          <select className="input" name="taskId" defaultValue={editing.taskId || ''} required>
-            <option value="">Selecione...</option>
-            {tasks.map((task) => <option key={task.id} value={task.id}>{task.name} — {task.project}</option>)}
-          </select>
-        </label>
-        <Field label="Início" name="start" type="datetime-local" defaultValue={editing.start?.slice(0, 16)} />
-        <Field label="Fim" name="end" type="datetime-local" defaultValue={editing.end?.slice(0, 16)} />
-        <Field label="Descrição" name="note" defaultValue={editing.note} />
-        <Button type="submit">Salvar registro</Button>
-      </form>
+        <SelectField label="Tarefa" name="taskId" defaultValue={editing.taskId || ''} required>
+          <option value="">Selecione...</option>
+          {tasks.map((task) => (
+            <option key={task.id} value={task.id}>{task.name} — {task.project}</option>
+          ))}
+        </SelectField>
+        <FormPair>
+          <Field label="Início" name="start" type="datetime-local" defaultValue={editing.start?.slice(0, 16)} />
+          <Field label="Fim" name="end" type="datetime-local" defaultValue={editing.end?.slice(0, 16)} />
+        </FormPair>
+        <Field label="Descrição" name="note" textarea placeholder="Descreva o que foi realizado" defaultValue={editing.note} />
+        <FormActions label="Salvar registro" onCancel={() => setEditing(null)} />
+      </Form>
     </Modal>}
     </>
   );
