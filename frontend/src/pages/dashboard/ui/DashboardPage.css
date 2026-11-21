@@ -23,14 +23,27 @@
 .kpi small { color: var(--muted-foreground); }
 .donut {
   --progress: 180deg; flex: none; width: 78px; height: 78px; border-radius: 50%;
-  background: conic-gradient(var(--accent) var(--progress), var(--neutral) 0);
+  background:
+    radial-gradient(closest-side, var(--panel) 72%, transparent 73%),
+    conic-gradient(var(--accent) var(--progress), var(--neutral) 0);
   display: grid; place-items: center;
 }
-.donut::before { content: ''; width: 58px; height: 58px; background: var(--panel); border-radius: 50%; grid-area: 1 / 1; }
 .donut b { z-index: 1; font-size: 12px; }
-.donut.red { background: conic-gradient(var(--destructive) var(--progress), var(--neutral) 0); }
-.donut.green { background: conic-gradient(var(--info) var(--progress), var(--neutral) 0); }
-.donut.teal { background: conic-gradient(var(--info) var(--progress), var(--neutral) 0); }
+.donut.red {
+  background:
+    radial-gradient(closest-side, var(--panel) 72%, transparent 73%),
+    conic-gradient(var(--destructive) var(--progress), var(--neutral) 0);
+}
+.donut.green {
+  background:
+    radial-gradient(closest-side, var(--panel) 72%, transparent 73%),
+    conic-gradient(var(--info) var(--progress), var(--neutral) 0);
+}
+.donut.teal {
+  background:
+    radial-gradient(closest-side, var(--panel) 72%, transparent 73%),
+    conic-gradient(var(--info) var(--progress), var(--neutral) 0);
+}
 
 .dash-grid { flex: 1; display: grid; grid-template-columns: 5fr 7fr; gap: 24px; margin-top: 24px; }
 
