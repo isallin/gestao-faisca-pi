@@ -118,6 +118,10 @@ class GoogleCalendarFluxoTests {
         assertEquals(201, tarefa.statusCode(), tarefa.body());
         int tarefaId = mapper.readTree(tarefa.body()).path("id").asInt();
 
+        HttpResponse<String> statusPatch = send("PATCH", "/api/tarefas/" + tarefaId + "/status",
+                "{\"status\":\"Concluído\"}", token);
+        assertEquals(200, statusPatch.statusCode(), statusPatch.body());
+
         HttpResponse<String> registro = send("POST", "/api/registros",
                 "{\"tarefaId\":" + tarefaId + ",\"inicio\":\"2026-11-20T09:00:00\",\"fim\":\"2026-11-20T11:00:00\",\"descricao\":\"Reunião\"}", token);
         assertEquals(201, registro.statusCode(), registro.body());

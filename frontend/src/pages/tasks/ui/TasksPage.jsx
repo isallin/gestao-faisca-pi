@@ -37,8 +37,6 @@ const MODES = [
 ];
 
 const STATUSES = ['Pendente', 'Em andamento', 'In Hold', 'Concluído', 'Cancelado'];
-const PRIORITIES = ['Crítica', 'Alta', 'Média', 'Baixa'];
-
 const initialMode = (param) => (param === 'weekly' || param === 'list' ? param : 'monthly');
 
 const optionsOf = (values, allLabel) => [
@@ -112,11 +110,11 @@ export function TasksPage() {
       {
         key: 'priority',
         label: 'Prioridade',
-        options: optionsOf(PRIORITIES, 'Todas'),
+        options: optionsOf([...new Set(tasks.map((task) => task.priority).filter(Boolean))], 'Todas'),
         match: (task, value) => task.priority === value,
       },
     ],
-    [projects],
+    [projects, tasks],
   );
   const [values, setValues] = useState(() => initialFilterValues(filters));
   const changeFilter = (key, value) => setValues((v) => ({ ...v, [key]: value }));

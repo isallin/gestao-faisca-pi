@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Plus, X } from 'lucide-react';
 import { useCollaborators } from '@/entities/collaborator';
 import { useProjects } from '@/entities/project';
-import { TASK_PRIORITIES, useTasks } from '@/entities/task';
+import { useTasks } from '@/entities/task';
 import { readForm } from '@/shared/lib/read-form';
 import {
   Button,
@@ -143,14 +143,7 @@ export function CreateTaskForm({ onClose, task }) {
                 </option>
               ))}
             </SelectField>
-            <SelectField label="Prioridade" name="priority" defaultValue={task?.priority ?? ''}>
-              <option value="" disabled>Selecione...</option>
-              {TASK_PRIORITIES.map((priority) => (
-                <option key={priority} value={priority}>
-                  {priority}
-                </option>
-              ))}
-            </SelectField>
+            <Field label="Prioridade" name="priority" placeholder="Ex.: Moderada" defaultValue={task?.priority ?? ''} />
           </div>
           <div>
             <Field label="Data de início" name="start" type="date" defaultValue={task?.start} />

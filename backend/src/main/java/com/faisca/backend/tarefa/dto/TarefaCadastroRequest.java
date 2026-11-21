@@ -29,8 +29,8 @@ public class TarefaCadastroRequest {
     private String nome;
 
     @NotBlank(message = "Prioridade é obrigatória")
-    @Schema(description = "Prioridade", allowableValues = {"Baixa", "Média", "Alta", "Crítica"}, example = "Alta", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(regexp = "Baixa|Média|Alta|Crítica", message = "Prioridade inválida")
+    @Schema(description = "Prioridade livre até 45 caracteres", example = "Moderada", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 45, message = "Prioridade deve ter no máximo 45 caracteres")
     private String prioridade;
 
     @NotNull(message = "Data de início prevista é obrigatória")
