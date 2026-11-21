@@ -117,7 +117,7 @@ function detailsOf(project) {
 
 /** project: quando informado, o formulário entra em modo de edição. */
 export function CreateProjectForm({ onClose, project }) {
-  const { add, update, phases } = useProjects();
+  const { add, update, phases, phaseError, reloadPhases } = useProjects();
   const clients = useClients().items;
   const isEditing = Boolean(project);
   const d = useMemo(() => detailsOf(project), [project]);
@@ -128,10 +128,18 @@ export function CreateProjectForm({ onClose, project }) {
   const [city, setCity] = useState(d.city ?? '');
   const [stateCode, setStateCode] = useState(d.state ?? '');
   const lastZipLookup = useRef('');
+  const retriedPhases = useRef(false);
   const defaultClientId = String(
     project?.clientId ?? clients.find((client) => client.name === project?.client)?.id ?? clients[0]?.id ?? '',
   );
   const defaultPhaseId = String(project?.stageId ?? phases[0]?.id ?? '');
+
+  useEffect(() => {
+    if (!phases.length && !retriedPhases.current) {
+      retriedPhases.current = true;
+      reloadPhases();
+    }
+  }, [phases.length, reloadPhases]);
 
   useEffect(() => {
     setZip(d.zip ?? '');
@@ -313,7 +321,7 @@ export function CreateProjectForm({ onClose, project }) {
           </div>
           <div>
             <h3>Status e observação</h3>
-            <SelectField label="Fase" name="phaseId" defaultValue={defaultPhaseId}>
+            <SelectField key={`${defaultPhaseId}-${phases.length}`} label="Fase" name="phaseId" defaultValue={defaultPhaseId}>
               <option value="" disabled>Selecione...</option>
               {phases.map((phase) => (
                 <option key={phase.id} value={phase.id}>
@@ -321,6 +329,11 @@ export function CreateProjectForm({ onClose, project }) {
                 </option>
               ))}
             </SelectField>
+            {phaseError && (
+              <small role="alert">
+                {phaseError} <button type="button" onClick={reloadPhases}>Recarregar fases</button>
+              </small>
+            )}
             <Field label="Data de início" name="start" type="date" defaultValue={project?.start} />
             <Field label="Data do fim" name="end" type="date" defaultValue={project?.end} />
             <Field label="Observação" name="note" textarea placeholder="Informações adicionais sobre o projeto" defaultValue={project?.note} />

@@ -135,6 +135,12 @@ class GoogleCalendarFluxoTests {
         jdbc.execute("INSERT INTO google_token (fkUsuario, access_token, refresh_token, expira_em) VALUES ("
                 + usuarioId + ", 'acesso-falso', 'refresh-falso', " + (System.currentTimeMillis() + 3_600_000) + ")");
         assertEquals(1L, ((Number) em.createNativeQuery("SELECT COUNT(*) FROM google_token").getSingleResult()).longValue());
+        // Abrir Tarefas consulta status e listagens; mesmo com token Google inválido,
+        // essas consultas devem funcionar sem chamar a API externa.
+        assertTrue(mapper.readTree(send("GET", "/api/calendar/status", null, token).body()).path("connected").asBoolean());
+        assertEquals(200, send("GET", "/api/tarefas", null, token).statusCode());
+        assertEquals(200, send("GET", "/api/fases", null, token).statusCode());
+        assertEquals(200, send("GET", "/api/projetos", null, token).statusCode());
         assertEquals(204, send("DELETE", "/api/calendar/conexao", null, token).statusCode());
         assertEquals(0L, ((Number) em.createNativeQuery("SELECT COUNT(*) FROM google_token").getSingleResult()).longValue());
     }

@@ -9,26 +9,40 @@ const ProjectsContext = createContext(null);
 export function ProjectsProvider({ children }) {
   const [items, setItems] = useState([]);
   const [phases, setPhases] = useState([]);
+  const [phaseError, setPhaseError] = useState('');
   const [isLoading, setIsLoading] = useState(Boolean(getAuthToken()));
   const [error, setError] = useState('');
+
+  const reloadPhases = useCallback(async () => {
+    if (!getAuthToken()) return;
+    setPhaseError('');
+    try {
+      const records = await listPhases();
+      setPhases(records);
+      return records;
+    } catch {
+      setPhaseError('Não foi possível carregar as fases. Tente novamente.');
+      return [];
+    }
+  }, []);
 
   const reload = useCallback(async () => {
     if (!getAuthToken()) return;
 
     setIsLoading(true);
     setError('');
+    const phaseRecords = await reloadPhases();
     try {
-      const [records, phaseRecords] = await Promise.all([listProjects(), listPhases()]);
+      const records = await listProjects();
       const phaseMap = new Map(phaseRecords.map((phase) => [phase.id, phase.nome]));
 
-      setPhases(phaseRecords);
       setItems(records.map((record) => mapProjectResponse(record, phaseMap)));
     } catch {
       setError('Nao foi possivel carregar os projetos.');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [reloadPhases]);
 
   useEffect(() => {
     reload();
@@ -38,6 +52,8 @@ export function ProjectsProvider({ children }) {
     () => ({
       items,
       phases,
+      phaseError,
+      reloadPhases,
       isLoading,
       error,
       reload,
@@ -60,7 +76,7 @@ export function ProjectsProvider({ children }) {
         setItems((list) => list.filter((item) => item.id !== Number(id)));
       },
     }),
-    [error, isLoading, items, phases, reload],
+    [error, isLoading, items, phases, phaseError, reload, reloadPhases],
   );
 
   return <ProjectsContext.Provider value={value}>{children}</ProjectsContext.Provider>;
