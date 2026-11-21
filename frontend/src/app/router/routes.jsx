@@ -56,6 +56,7 @@ export const routes = [
       { path: '/excluir-colaborador/:id', element: <EntityDeletePage kind="collaborator" /> },
       { path: '/excluir-fornecedor/:id', element: <EntityDeletePage kind="supplier" /> },
       { path: '/excluir-projeto/:id', element: <EntityDeletePage kind="project" /> },
+      { path: '/excluir-registro/:id', element: <EntityDeletePage kind="record" /> },
     ],
   },
   { path: '*', element: <NotFoundPage /> },
