@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+
 @SpringBootApplication
 public class BackendApplication {
 
@@ -24,7 +26,9 @@ public class BackendApplication {
     @Bean
     CommandLineRunner init(UsuarioRepository repository, PasswordEncoder encoder) {
         return args -> {
-            if (repository.findByEmail("teste@faisca.com").isEmpty()) {
+            Optional<Usuario> usuarioExistente = repository.findByEmail("teste@faisca.com");
+
+            if (usuarioExistente.isEmpty()) {
                 Usuario u = new Usuario();
                 u.setNome("Teste");
                 u.setSobrenome("Silva");
@@ -32,6 +36,17 @@ public class BackendApplication {
                 u.setCargo("Administrador");
                 u.setSenha(encoder.encode("123456"));
                 repository.save(u);
+                return;
+            }
+
+            Usuario usuario = usuarioExistente.get();
+            String senhaAtual = usuario.getSenha();
+
+            if (senhaAtual != null && !senhaAtual.startsWith("$2a$")
+                    && !senhaAtual.startsWith("$2b$")
+                    && !senhaAtual.startsWith("$2y$")) {
+                usuario.setSenha(encoder.encode(senhaAtual));
+                repository.save(usuario);
             }
         };
     }
