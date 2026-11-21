@@ -49,7 +49,8 @@ public class TarefaService {
         Tarefa tarefa = obter(id);
         preencher(tarefa, r);
         if (!r.getStatus().equals(tarefa.getStatusAtual())) tarefa.adicionarStatus(novoStatus(r.getStatus()));
-        TarefaResponse response = new TarefaResponse(repository.saveAndFlush(tarefa));
+        repository.flush();
+        TarefaResponse response = new TarefaResponse(tarefa);
         calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.TAREFA, id, EventoCalendario.deTarefa(tarefa));
         return response;
     }
@@ -57,7 +58,7 @@ public class TarefaService {
         Tarefa tarefa = obter(id);
         if (!r.getStatus().equals(tarefa.getStatusAtual())) {
             tarefa.adicionarStatus(novoStatus(r.getStatus()));
-            repository.saveAndFlush(tarefa);
+            repository.flush();
             calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.TAREFA, id, EventoCalendario.deTarefa(tarefa));
         }
         return new TarefaResponse(tarefa);
