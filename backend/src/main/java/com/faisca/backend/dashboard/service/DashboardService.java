@@ -23,6 +23,7 @@ public class DashboardService {
     private static final int META_HORAS_MENSAL = 160;
     private static final int MESES_NO_GRAFICO = 6;
     private static final String STATUS_CONCLUIDO = "Concluído";
+    private static final String STATUS_CONCLUIDO_SEM_ACENTO = "Concluido";
     private static final ZoneId FUSO = ZoneId.of("America/Sao_Paulo");
     private static final String[] MESES = {"Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"};
 
@@ -85,7 +86,7 @@ public class DashboardService {
 
                 if (!fim.isBefore(inicioSemana) && !fim.isAfter(fimSemana)) {
                     totalSemana++;
-                    if (!concluida && !fim.isBefore(hoje)) {
+                    if (!concluida) {
                         pendentesSemana++;
                     }
                 }
@@ -143,8 +144,8 @@ public class DashboardService {
         }
 
         DashboardResponse response = new DashboardResponse(
-                new KpiTarefasResponse(pendentesHoje, totalHoje, percentual(totalHoje - pendentesHoje, totalHoje)),
-                new KpiTarefasResponse(pendentesSemana, totalSemana, percentual(totalSemana - pendentesSemana, totalSemana)),
+                new KpiTarefasResponse(pendentesHoje, totalHoje, percentual(pendentesHoje, totalHoje)),
+                new KpiTarefasResponse(pendentesSemana, totalSemana, percentual(pendentesSemana, totalSemana)),
                 new KpiTarefasResponse(atrasadas, emAberto, percentual(atrasadas, emAberto)),
                 new KpiHorasResponse(Math.round(horasMes * 10) / 10.0, META_HORAS_MENSAL, percentual(horasMes, META_HORAS_MENSAL)),
                 urgentesResponse,
@@ -155,7 +156,8 @@ public class DashboardService {
     }
 
     private boolean estaConcluida(Tarefa t) {
-        return STATUS_CONCLUIDO.equalsIgnoreCase(t.getStatusAtual());
+        return STATUS_CONCLUIDO.equalsIgnoreCase(t.getStatusAtual())
+                || STATUS_CONCLUIDO_SEM_ACENTO.equalsIgnoreCase(t.getStatusAtual());
     }
 
     private String responsaveis(Tarefa t) {

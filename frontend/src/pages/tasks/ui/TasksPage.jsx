@@ -36,7 +36,7 @@ const MODES = [
   { value: 'list', label: 'Lista' },
 ];
 
-const STATUSES = ['Pendente', 'Em andamento', 'Concluído'];
+const STATUSES = ['Pendente', 'Em andamento', 'In Hold', 'Concluído', 'Cancelado'];
 const PRIORITIES = ['Crítica', 'Alta', 'Média', 'Baixa'];
 
 const initialMode = (param) => (param === 'weekly' || param === 'list' ? param : 'monthly');
@@ -142,7 +142,13 @@ export function TasksPage() {
       }),
     [filtered, selectedMonth],
   );
-  const ganttTasks = useMemo(() => buildGanttTasks(monthFiltered), [monthFiltered]);
+  const ganttTasks = useMemo(
+    () =>
+      buildGanttTasks(
+        monthFiltered.filter((task) => task.status !== 'Concluído' && task.status !== 'Concluido'),
+      ),
+    [monthFiltered],
+  );
   const monthLabel = useMemo(() => {
     const value = format(selectedMonth, "LLLL 'de' yyyy", { locale: ptBR });
     return value.charAt(0).toUpperCase() + value.slice(1);
