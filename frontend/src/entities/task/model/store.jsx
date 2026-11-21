@@ -142,7 +142,7 @@ function mapTaskResponse(task, categoriesMap, phasesMap, projectCodeMap, memberM
     start: onlyDate(task.dataInicioPrev),
     end: onlyDate(task.dataFimPrev),
     status: task.status,
-    priority: task.prioridade,
+    priority: normalizePriority(task.prioridade),
     category: categoriesMap.get(task.categoriaId) || `Categoria ${task.categoriaId}`,
     stage: phasesMap.get(task.fkTarefaFase) || `Fase ${task.fkTarefaFase}`,
     note: task.observacao || '',
@@ -150,6 +150,12 @@ function mapTaskResponse(task, categoriesMap, phasesMap, projectCodeMap, memberM
     checklist: task.checklist || [],
     timeLogs: [],
   };
+}
+
+function normalizePriority(priority) {
+  if (priority === 'Critica') return 'Crítica';
+  if (priority === 'Media') return 'Média';
+  return priority;
 }
 
 
