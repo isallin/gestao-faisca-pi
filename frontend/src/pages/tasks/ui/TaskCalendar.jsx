@@ -1,13 +1,17 @@
-import { taskTone } from '@/entities/task';
+import { useMemo } from 'react';
+import { addDays, format, startOfMonth, startOfWeek } from 'date-fns';
+import { taskEndsOnDate, taskTone } from '@/entities/task';
 
 const WEEKDAYS = ['domingo', 'segunda-feira', 'terça-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 'sábado'];
-// Agosto/2026 começa em um sábado: o 1º dia cai na 7ª célula da grade.
-const CELLS = Array.from({ length: 42 }, (_, i) => i - 5);
-const TODAY = 3;
 const MAX_PER_DAY = 3;
 
-/** Cada tarefa aparece no dia de início, identificada pelo código do projeto. */
-export function TaskCalendar({ tasks, onSelect }) {
+/** Calendário mensal com tarefas exibidas como barra colorida na data final. */
+export function TaskCalendar({ tasks, month, onSelect }) {
+  const monthStart = startOfMonth(month || new Date());
+  const gridStart = startOfWeek(monthStart);
+  const cells = useMemo(() => Array.from({ length: 42 }, (_, index) => addDays(gridStart, index)), [gridStart]);
+  const today = format(new Date(), 'yyyy-MM-dd');
+
   return (
     <div className="calendar">
       <div className="weekdays">
@@ -16,13 +20,14 @@ export function TaskCalendar({ tasks, onSelect }) {
         ))}
       </div>
       <div className="month-grid">
-        {CELLS.map((day, index) => {
-          const outside = day < 1 || day > 31;
-          const label = day < 1 ? 31 + day : day > 31 ? day - 31 : day;
-          const dayTasks = outside ? [] : tasks.filter((task) => Number(task.start.slice(-2)) === day);
+        {cells.map((day) => {
+          const outside = day.getMonth() !== monthStart.getMonth();
+          const dayIso = format(day, 'yyyy-MM-dd');
+          const dayTasks = outside ? [] : tasks.filter((task) => taskEndsOnDate(task, day));
+
           return (
-            <div className={outside ? 'outside' : ''} key={index}>
-              <span className={day === TODAY ? 'today' : ''}>{label}</span>
+            <div className={outside ? 'outside' : ''} key={dayIso}>
+              <span className={dayIso === today ? 'today' : ''}>{format(day, 'd')}</span>
               {dayTasks.slice(0, MAX_PER_DAY).map((task) => (
                 <button
                   key={task.id}

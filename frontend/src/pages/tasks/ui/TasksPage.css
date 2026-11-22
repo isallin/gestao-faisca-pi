@@ -1,6 +1,43 @@
 .tasks-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 24px; }
+.tasks-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .tasks-button {display: flex;}
+
+/* Card compacto de integração com o Google Calendar (ao lado do título) */
+.gcal-chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 8px 6px 12px;
+  background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: 0 1px 2px color-mix(in oklab, var(--foreground) 8%, transparent);
+  font-size: 13px; white-space: nowrap;
+}
+.gcal-chip > svg { color: var(--muted-foreground); }
+.gcal-name { font-weight: 600; }
+.gcal-status { display: inline-flex; align-items: center; gap: 6px; color: var(--muted-foreground); }
+.gcal-status i { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.gcal-status.on { color: var(--success); }
+.gcal-message { color: var(--muted-foreground); max-width: 220px; white-space: normal; }
+.gcal-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 12px; border: none; border-radius: 999px;
+  font-size: 11px; font-weight: 600; line-height: 1.7; cursor: pointer;
+}
+.gcal-btn.on { background: color-mix(in oklab, var(--success) 22%, white); color: color-mix(in oklab, var(--success) 55%, black); }
+.gcal-btn.off { background: color-mix(in oklab, var(--destructive) 15%, white); color: color-mix(in oklab, var(--destructive) 60%, black); }
+.gcal-btn:disabled { opacity: 0.6; cursor: default; }
 .tasks-layout { display: grid; grid-template-columns: minmax(280px, 4fr) minmax(560px, 8fr); gap: 24px; }
+.tasks-layout-weekly { grid-template-columns: 1fr; }
+.tasks-layout-weekly { max-width: 100%; overflow-x: hidden; }
+.calendar-column { min-width: 0; max-width: 100%; }
+.tasks-visual-head {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.tasks-visual-filter {
+  grid-column: 1 / -1;
+}
 .task-list-column > .btn { width: 100%; margin-bottom: 12px; }
 .task-list { background: var(--panel); border-radius: 16px; padding: 12px; display: grid; gap: 12px; max-height: 700px; overflow: auto; }
 .task-item { min-height: 82px; position: relative; background: var(--neutral); border-radius: 8px; padding: 12px 60px 8px 14px; }
@@ -14,9 +51,30 @@
 .task-item em { font-size: 12px; color: var(--muted-foreground); }
 .task-done h3 { text-decoration: line-through; }
 
-.calendar-column > header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .calendar-column h2 { display: flex; align-items: center; gap: 8px; }
-.calendar-column > .filter-panel { margin-top: 16px; }
+.month-title { position: relative; }
+.month-picker-trigger {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+.month-picker-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 35;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px;
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--foreground) 14%, transparent);
+}
 
 .calendar { background: var(--panel); border-radius: 8px; overflow: hidden; }
 .weekdays, .month-grid { display: grid; grid-template-columns: repeat(7, minmax(88px, 1fr)); }
@@ -35,11 +93,22 @@
 .bar-primary { background: var(--primary) !important; color: var(--foreground); }
 
 .gantt-scroll { overflow-x: auto; background: var(--panel); border-radius: 8px; }
-.gantt { min-width: 850px; padding: 12px; }
-.gantt-days { display: grid; grid-template-columns: repeat(14, 1fr); font-size: 12px; color: var(--muted-foreground); }
-.gantt-row { height: 56px; border-top: 1px solid var(--border); position: relative; padding-top: 28px; }
-.gantt-row strong { position: absolute; top: 3px; left: 0; font-size: 12px; }
-.gantt-row .gantt-bar { height: 24px; border: 0; border-radius: 4px; display: block; padding: 2px 8px; font-size: 12px; white-space: nowrap; text-align: left; cursor: pointer; }
+.gantt-lib-wrap { min-width: 850px; height: 100%; }
+.tasks-gantt {
+  --wx-gantt-border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  --wx-grid-body-row-border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  --wx-timescale-border: 1px solid color-mix(in oklab, var(--border) 45%, transparent);
+  --wx-gantt-task-color: var(--primary);
+  --wx-gantt-task-fill-color: var(--primary);
+  --wx-gantt-task-font-color: var(--foreground);
+  --wx-gantt-task-border-color: color-mix(in oklab, var(--primary) 75%, black);
+  --wx-gantt-project-color: var(--primary);
+  --wx-gantt-project-fill-color: var(--primary);
+  --wx-gantt-project-font-color: var(--foreground);
+  --wx-gantt-project-border-color: color-mix(in oklab, var(--primary) 75%, black);
+  --wx-gantt-milestone-color: var(--destructive);
+}
+.tasks-gantt .wx-willow-theme { background: var(--panel); }
 
 @media (max-width: 1100px) {
   .tasks-layout { grid-template-columns: 5fr 7fr; }

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -40,7 +41,7 @@ public class TarefaService {
         Tarefa tarefa = new Tarefa();
         preencher(tarefa, r);
         tarefa.setCriadoPor(usuarioId);
-        tarefa.adicionarStatus(novoStatus(r.getStatus()));
+        aplicarStatusAtual(tarefa, r.getStatus());
         TarefaResponse response = new TarefaResponse(repository.saveAndFlush(tarefa));
         calendario.publicarCriacao(SyncCalendarioEvent.TipoEntidade.TAREFA, tarefa.getId(), usuarioId, EventoCalendario.deTarefa(tarefa));
         return response;
@@ -48,16 +49,17 @@ public class TarefaService {
     public TarefaResponse atualizar(Integer id, TarefaCadastroRequest r) {
         Tarefa tarefa = obter(id);
         preencher(tarefa, r);
-        if (!r.getStatus().equals(tarefa.getStatusAtual())) tarefa.adicionarStatus(novoStatus(r.getStatus()));
-        TarefaResponse response = new TarefaResponse(repository.saveAndFlush(tarefa));
+        if (!Objects.equals(r.getStatus(), tarefa.getStatusAtual())) aplicarStatusAtual(tarefa, r.getStatus());
+        repository.flush();
+        TarefaResponse response = new TarefaResponse(tarefa);
         calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.TAREFA, id, EventoCalendario.deTarefa(tarefa));
         return response;
     }
     public TarefaResponse atualizarStatus(Integer id, TarefaStatusRequest r) {
         Tarefa tarefa = obter(id);
-        if (!r.getStatus().equals(tarefa.getStatusAtual())) {
-            tarefa.adicionarStatus(novoStatus(r.getStatus()));
-            repository.saveAndFlush(tarefa);
+        if (!Objects.equals(r.getStatus(), tarefa.getStatusAtual())) {
+            aplicarStatusAtual(tarefa, r.getStatus());
+            repository.flush();
             calendario.publicarAtualizacao(SyncCalendarioEvent.TipoEntidade.TAREFA, id, EventoCalendario.deTarefa(tarefa));
         }
         return new TarefaResponse(tarefa);
@@ -75,6 +77,13 @@ public class TarefaService {
     }
     private StatusTarefa novoStatus(String valor) {
         StatusTarefa status = new StatusTarefa(); status.setStatus(valor.trim()); return status;
+    }
+    private void aplicarStatusAtual(Tarefa tarefa, String valor) {
+        if (tarefa.getHistoricoStatus().isEmpty()) {
+            tarefa.adicionarStatus(novoStatus(valor));
+            return;
+        }
+        tarefa.getHistoricoStatus().get(0).setStatus(valor.trim());
     }
     private void preencher(Tarefa tarefa, TarefaCadastroRequest r) {
         if (r.getDataFimPrev().isBefore(r.getDataInicioPrev()) || (r.getDataInicioReal() != null && r.getDataFimReal() != null && r.getDataFimReal().isBefore(r.getDataInicioReal())))

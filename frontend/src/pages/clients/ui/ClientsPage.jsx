@@ -28,6 +28,9 @@ const detail = (client) => [
   { label: 'Endereço completo', value: client.address },
   { label: 'Telefone', value: client.phone },
   { label: 'E-mail', value: client.email },
+  { label: 'RG', value: client.details?.rg || 'Não informado' },
+  { label: 'CPF', value: client.details?.cpf || 'Não informado' },
+  { label: 'Profissão', value: client.details?.job || 'Não informado' },
   { label: 'Observação', value: client.note },
 ];
 

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AlertTriangle,
   CalendarCheck2,
@@ -8,11 +8,9 @@ import {
   Clock3,
 } from 'lucide-react';
 import { useProjects } from '@/entities/project';
-import { useTasks } from '@/entities/task';
+import { getDashboard } from '@/shared/api/dashboard';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { SelectField } from '@/shared/ui';
-import { computeDashboard } from '../lib/dashboard-metrics';
-import { GoogleCalendarCard } from './GoogleCalendarCard';
 import { KpiCard } from './KpiCard';
 import './DashboardPage.css';
 
@@ -27,19 +25,52 @@ const SERIES = [
 export function DashboardPage() {
   usePageTitle('Dashboard');
   const { items: projects } = useProjects();
-  const { items: tasks } = useTasks();
   const [projectCode, setProjectCode] = useState(ALL_PROJECTS);
+  const [dashboard, setDashboard] = useState(() => ({
+    todayPending: { value: 0, total: 0, percent: 0 },
+    weekPending: { value: 0, total: 0, percent: 0 },
+    late: { value: 0, total: 0, percent: 0 },
+    hours: { value: 0, goal: 160, percent: 0 },
+    urgentToday: [],
+    months: [],
+  }));
 
-  const isFiltered = projectCode !== ALL_PROJECTS;
-  const projectTasks = useMemo(
-    () => (isFiltered ? tasks.filter((t) => t.project === projectCode) : tasks),
-    [tasks, projectCode, isFiltered],
-  );
+  useEffect(() => {
+    let active = true;
 
-  const { todayPending, weekPending, late, hours, urgentToday, months } = useMemo(
-    () => computeDashboard(projectTasks),
-    [projectTasks],
-  );
+    const loadDashboard = async () => {
+      try {
+        const response = await getDashboard(projectCode);
+        if (!active) return;
+        setDashboard({
+          todayPending: response?.todayPending ?? { value: 0, total: 0, percent: 0 },
+          weekPending: response?.weekPending ?? { value: 0, total: 0, percent: 0 },
+          late: response?.late ?? { value: 0, total: 0, percent: 0 },
+          hours: response?.hours ?? { value: 0, goal: 160, percent: 0 },
+          urgentToday: response?.urgentToday ?? [],
+          months: response?.months ?? [],
+        });
+      } catch {
+        if (!active) return;
+        setDashboard({
+          todayPending: { value: 0, total: 0, percent: 0 },
+          weekPending: { value: 0, total: 0, percent: 0 },
+          late: { value: 0, total: 0, percent: 0 },
+          hours: { value: 0, goal: 160, percent: 0 },
+          urgentToday: [],
+          months: [],
+        });
+      }
+    };
+
+    loadDashboard();
+
+    return () => {
+      active = false;
+    };
+  }, [projectCode]);
+
+  const { todayPending, weekPending, late, hours, urgentToday, months } = dashboard;
   const maxMonth = Math.max(1, ...months.map((m) => m.total));
   const hasChartData = months.some((m) => m.total > 0);
 
@@ -71,8 +102,8 @@ export function DashboardPage() {
           icon={<CalendarClock />}
           label="Tarefas pendentes (hoje)"
           value={todayPending.value}
-          caption={`de ${todayPending.total} previstas hoje`}
-          percentHint="Percentual das tarefas de hoje já concluídas"
+          caption={`de ${todayPending.total} tarefa(s) para hoje`}
+          percentHint="Percentual de tarefas pendentes de hoje"
           tone="amber"
           percent={todayPending.percent}
         />
@@ -80,8 +111,8 @@ export function DashboardPage() {
           icon={<CalendarDays />}
           label="Tarefas pendentes (semana)"
           value={weekPending.value}
-          caption={`de ${weekPending.total} previstas na semana`}
-          percentHint="Percentual das tarefas da semana já concluídas"
+          caption={`de ${weekPending.total} tarefa(s) para essa semana`}
+          percentHint="Percentual de tarefas pendentes da semana"
           tone="teal"
           percent={weekPending.percent}
         />
@@ -89,7 +120,7 @@ export function DashboardPage() {
           icon={<AlertTriangle />}
           label="Tarefas atrasadas"
           value={late.value}
-          caption={`de ${late.total} em aberto`}
+          caption={`de ${late.total} tarefa(s) pendentes`}
           percentHint="Percentual das tarefas em aberto que estão atrasadas"
           tone="red"
           percent={late.percent}
@@ -104,8 +135,6 @@ export function DashboardPage() {
           percent={hours.percent}
         />
       </section>
-
-      <GoogleCalendarCard />
 
       <section className="dash-grid">
         <div className="dash-panel urgent">

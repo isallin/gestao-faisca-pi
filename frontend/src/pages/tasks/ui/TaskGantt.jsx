@@ -1,28 +1,43 @@
-import { taskTone } from '@/entities/task';
+import { addDays, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { Gantt, Willow } from '@svar-ui/react-gantt';
+import '@svar-ui/react-gantt/all.css';
 
-export function TaskGantt({ tasks, onSelect }) {
+const WEEK_SCALES = [
+  { unit: 'week', step: 1, format: (date) => `Semana ${format(date, 'II', { locale: ptBR })}` },
+  { unit: 'day', step: 1, format: (date) => format(date, 'dd/MM', { locale: ptBR }) },
+];
+
+const COLUMNS = [
+  { id: 'text', header: 'Tarefa', width: 240 },
+  { id: 'project', header: 'Projeto', width: 120 },
+];
+
+export function TaskGantt({ tasks = [], start, end, onSelect }) {
+  const rangeStart = start || new Date();
+  const rangeEnd = end || addDays(rangeStart, 13);
+
   return (
-    <div className="gantt-scroll">
-      <div className="gantt">
-        <div className="gantt-days">
-          {Array.from({ length: 14 }, (_, i) => (
-            <span key={i}>{i + 1}/08</span>
-          ))}
+    <div className="gantt-scroll tasks-gantt">
+      <Willow fonts={false}>
+        <div className="gantt-lib-wrap">
+          <Gantt
+            tasks={tasks}
+            scales={WEEK_SCALES}
+            columns={COLUMNS}
+            start={rangeStart}
+            end={rangeEnd}
+            cellWidth={64}
+            cellHeight={38}
+            autoScale={false}
+            readonly
+            onTaskClick={(event) => {
+              const id = Number(event?.task?.id ?? event?.id ?? event?.data?.id);
+              if (!Number.isNaN(id)) onSelect?.(id);
+            }}
+          />
         </div>
-        {tasks.map((task, index) => (
-          <div className="gantt-row" key={task.id}>
-            <strong>{task.name}</strong>
-            <button
-              type="button"
-              className={`${taskTone(task)} gantt-bar`}
-              style={{ marginLeft: `${index * 5}%`, width: `${18 + (index % 3) * 7}%` }}
-              onClick={() => onSelect?.(task.id)}
-            >
-              {task.project}
-            </button>
-          </div>
-        ))}
-      </div>
+      </Willow>
     </div>
   );
 }

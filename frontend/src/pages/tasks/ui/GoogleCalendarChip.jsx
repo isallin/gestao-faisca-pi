@@ -2,11 +2,15 @@ import { useEffect, useState } from 'react';
 import { CalendarDays, Link2, Unlink } from 'lucide-react';
 import { getCalendarStatus, getConnectUrl, disconnectCalendar } from '@/shared/api/googleCalendar';
 
+const HINT =
+  'Tarefas, projetos e registros de hora criados por você aparecem automaticamente no seu ' +
+  'Google Calendar. Editar ou excluir no Faísca atualiza o evento; excluir no Faísca apaga o evento.';
+
 /**
- * Card de integração com o Google Calendar: mostra o status da conexão
- * e oferece os botões Conectar/Desconectar.
+ * Card compacto de integração com o Google Calendar, exibido ao lado do
+ * título "Tarefas": mostra o status da conexão e o botão Conectar/Desconectar.
  */
-export function GoogleCalendarCard() {
+export function GoogleCalendarChip() {
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -41,7 +45,7 @@ export function GoogleCalendarCard() {
     try {
       await disconnectCalendar();
       setConnected(false);
-      setMessage('Desconectado. Os eventos já criados no Google permanecem.');
+      setMessage('Desconectado.');
     } catch {
       setMessage('Erro ao desconectar.');
     } finally {
@@ -50,34 +54,22 @@ export function GoogleCalendarCard() {
   };
 
   return (
-    <article className="dash-panel calendar-card">
-      <header>
-        <h2>
-          <CalendarDays size={20} /> Google Calendar
-        </h2>
-        <span className={`calendar-status ${connected ? 'on' : ''}`}>
-          {loading ? 'Verificando…' : connected ? 'Conectado' : 'Desconectado'}
-        </span>
-      </header>
-      <p className="calendar-hint">
-        Tarefas, projetos e registros de hora criados por você aparecem automaticamente no seu Google
-        Calendar. Editar ou excluir no Faísca atualiza o evento; excluir no Faísca apaga o evento.
-      </p>
-      {message && <small className="calendar-message">{message}</small>}
+    <div className="gcal-chip" title={HINT}>
+      <CalendarDays size={16} />
+      <span className="gcal-name">Google Calendar</span>
+      <span className={`gcal-status ${connected ? 'on' : ''}`}>
+        <i /> {loading ? 'Verificando…' : connected ? 'Conectado' : 'Desconectado'}
+      </span>
+      {message && <small className="gcal-message">{message}</small>}
       {connected ? (
-        <button type="button" className="calendar-btn" onClick={handleDisconnect} disabled={busy}>
-          <Unlink size={16} /> Desconectar
+        <button type="button" className="gcal-btn on" onClick={handleDisconnect} disabled={busy}>
+          <Unlink size={12} /> Desconectar
         </button>
       ) : (
-        <button
-          type="button"
-          className="calendar-btn"
-          onClick={handleConnect}
-          disabled={busy || loading}
-        >
-          <Link2 size={16} /> Conectar Google Calendar
+        <button type="button" className="gcal-btn off" onClick={handleConnect} disabled={busy || loading}>
+          <Link2 size={12} /> Conectar
         </button>
       )}
-    </article>
+    </div>
   );
 }

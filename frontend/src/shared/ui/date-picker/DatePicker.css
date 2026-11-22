@@ -1,0 +1,78 @@
+.date-picker-field {
+  position: relative;
+}
+
+.date-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.date-picker-trigger > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.date-picker-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 4px);
+  left: 0;
+  width: max-content;
+  max-width: min(720px, 96vw);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px color-mix(in oklab, var(--foreground) 14%, transparent);
+  padding: 8px;
+}
+
+.date-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 4px 0 8px;
+}
+
+.date-presets > button {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--neutral);
+  color: var(--foreground);
+  font-size: 12px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.date-presets > button:hover {
+  background: var(--surface);
+}
+
+.rdp-root {
+  --rdp-accent-color: var(--primary);
+  --rdp-accent-background-color: color-mix(in oklab, var(--primary) 20%, white);
+  --rdp-day_button-border-radius: 6px;
+  --rdp-selected-border: 0;
+  --rdp-range_start-background: var(--primary);
+  --rdp-range_end-background: var(--primary);
+}
+
+.rdp-day_button {
+  font: inherit;
+}
+
+@media (max-width: 767px) {
+  .date-picker-popover {
+    max-width: min(360px, 92vw);
+  }
+
+  .rdp-root {
+    --rdp-day-width: 36px;
+    --rdp-day-height: 36px;
+  }
+}

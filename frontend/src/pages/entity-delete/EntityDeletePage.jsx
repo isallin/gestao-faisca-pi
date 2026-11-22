@@ -7,12 +7,24 @@ import { useCollaborators } from '@/entities/collaborator';
 import { useSuppliers } from '@/entities/supplier';
 import { Button, FormAlert } from '@/shared/ui';
 
+function useRecordsStore() {
+  const { items: tasks, removeLog, isLoading } = useTasks();
+  const items = tasks.flatMap((task) =>
+    (task.timeLogs ?? []).map((log) => ({
+      id: log.id,
+      name: `${task.name} (${(log.start || log.date || '').slice(0, 10)})`,
+    })),
+  );
+  return { items, remove: (id) => removeLog(Number(id)), isLoading };
+}
+
 const kinds = {
   client: { useStore: useClients, back: '/clientes', label: 'cliente' },
   project: { useStore: useProjects, back: '/projetos', label: 'projeto' },
   task: { useStore: useTasks, back: '/tarefa', label: 'tarefa' },
   collaborator: { useStore: useCollaborators, back: '/colaborador', label: 'colaborador' },
   supplier: { useStore: useSuppliers, back: '/fornecedores', label: 'fornecedor' },
+  record: { useStore: useRecordsStore, back: '/registros', label: 'registro' },
 };
 
 export function EntityDeletePage({ kind }) {

@@ -1,10 +1,26 @@
 import { useState } from 'react';
+import { IMaskInput } from 'react-imask';
 import { useProjects } from '@/entities/project';
 import { useSuppliers } from '@/entities/supplier';
 import { readForm } from '@/shared/lib/read-form';
 import { Field, Form, FormActions, FormAlert, FormColumns, Modal, SelectField } from '@/shared/ui';
 
 const CATEGORIES = ['Marcenaria', 'Iluminação', 'Marmoraria', 'Paisagismo', 'Construção'];
+const PHONE_MASKS = ['(00) 0000-0000', '(00) 00000-0000'];
+
+const pickPhoneMask = (appended, dynamicMasked) => {
+  const digits = `${dynamicMasked.value}${appended}`.replace(/\D/g, '');
+  return dynamicMasked.compiledMasks[digits.length > 10 ? 1 : 0];
+};
+
+function MaskedField({ label, className = 'field', mask, dispatch, ...props }) {
+  return (
+    <label className={className}>
+      <span>{label}</span>
+      <IMaskInput className="input" mask={mask} dispatch={dispatch} {...props} />
+    </label>
+  );
+}
 
 /** supplier: quando informado, o formulário entra em modo de edição. */
 export function CreateSupplierForm({ onClose, supplier }) {
@@ -37,8 +53,22 @@ export function CreateSupplierForm({ onClose, supplier }) {
           <div>
             <Field label="Nome" name="name" placeholder="Nome do fornecedor" defaultValue={supplier?.name} />
             <SelectField label="Categoria" name="category" options={CATEGORIES} defaultValue={supplier?.category} />
-            <Field label="Telefone 1" name="phone" placeholder="(11) 0000-0000" defaultValue={supplier?.phone} />
-            <Field label="Telefone 2" name="phone2" placeholder="(11) 90000-0000 (opcional)" defaultValue={supplier?.phone2} />
+            <MaskedField
+              label="Telefone 1"
+              name="phone"
+              placeholder="(11) 90000-0000"
+              defaultValue={supplier?.phone}
+              mask={PHONE_MASKS}
+              dispatch={pickPhoneMask}
+            />
+            <MaskedField
+              label="Telefone 2"
+              name="phone2"
+              placeholder="(11) 90000-0000 (opcional)"
+              defaultValue={supplier?.phone2}
+              mask={PHONE_MASKS}
+              dispatch={pickPhoneMask}
+            />
             <Field label="E-mail 1" name="email" type="email" placeholder="contato@fornecedor.com.br" defaultValue={supplier?.email} />
             <Field label="E-mail 2" name="email2" type="email" placeholder="outro@fornecedor.com.br (opcional)" defaultValue={supplier?.email2} />
           </div>

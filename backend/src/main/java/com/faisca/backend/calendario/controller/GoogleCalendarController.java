@@ -64,9 +64,9 @@ public class GoogleCalendarController {
             Integer usuarioId = jwtUtil.validarStateGoogle(state);
             auth.conectar(usuarioId, code);
             sync.sincronizarPendentes(usuarioId);
-            destino = frontendUrl + "/?google=connected";
+            destino = frontendUrl + "/tarefa?google=connected";
         } catch (Exception e) {
-            destino = frontendUrl + "/?google=error";
+            destino = frontendUrl + "/tarefa?google=error";
         }
         response.sendRedirect(destino);
     }

@@ -11,6 +11,7 @@ import com.faisca.backend.tarefa.repository.TarefaRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 
@@ -69,6 +70,7 @@ public class CalendarSyncService {
     // -------- execução (depois do commit) --------
 
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    @Async("calendarSyncExecutor")
     public void aoSincronizar(SyncCalendarioEvent evento) {
         try {
             switch (evento.acao()) {
@@ -87,6 +89,7 @@ public class CalendarSyncService {
      * que ainda não têm evento (ex.: criadas antes da conexão ou com o Google desconectado).
      */
     @Transactional
+    @Async("calendarSyncExecutor")
     public void sincronizarPendentes(Integer usuarioId) {
         if (!auth.isConectado(usuarioId)) return;
 
