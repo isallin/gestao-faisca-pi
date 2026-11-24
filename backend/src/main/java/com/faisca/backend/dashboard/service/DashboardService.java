@@ -17,6 +17,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class DashboardService {
@@ -114,18 +115,19 @@ public class DashboardService {
             }
         }
 
-        urgentes.sort(Comparator.comparingInt(t -> pesoPrioridade(t.getPrioridade())));
+        urgentes.sort(Comparator.comparingInt(t -> pesoPrioridade(t.getPrioridadeNome())));
 
         List<TarefaUrgenteResponse> urgentesResponse = new ArrayList<>();
         for (int i = 0; i < urgentes.size(); i++) {
             Tarefa t = urgentes.get(i);
+            String prioridade = t.getPrioridadeNome() == null ? "" : t.getPrioridadeNome();
 
             urgentesResponse.add(new TarefaUrgenteResponse(
                     t.getId(),
                     t.getNome(),
                     t.getProjeto() == null ? "" : t.getProjeto().getCodigo(),
                     responsaveis(t),
-                    t.getPrioridade()
+                    prioridade
             ));
         }
 
@@ -175,15 +177,15 @@ public class DashboardService {
     }
 
     private int pesoPrioridade(String prioridade) {
-        if (prioridade == null) {
+        if (prioridade == null || prioridade.isBlank()) {
             return 99;
         }
 
-        return switch (prioridade) {
-            case "Crítica" -> 0;
-            case "Alta" -> 1;
-            case "Média" -> 2;
-            case "Baixa" -> 3;
+        return switch (prioridade.trim().toLowerCase(Locale.ROOT)) {
+            case "crítica", "critica" -> 0;
+            case "alta" -> 1;
+            case "média", "media", "moderada" -> 2;
+            case "baixa" -> 3;
             default -> 99;
         };
     }

@@ -1,11 +1,12 @@
 package com.faisca.backend.usuario.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.faisca.backend.tarefa.entity.ColaboradorTarefa;
+import com.faisca.backend.tarefa.entity.RegistroHoras;
+import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "usuario")
@@ -30,54 +31,29 @@ public class Usuario {
     @Column(name = "senha", nullable = false, length = 255)
     private String senha;
 
+    @OneToMany(mappedBy = "colaborador")
+    @BatchSize(size = 50)
+    private List<ColaboradorTarefa> tarefasAtribuidas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "colaborador")
+    @BatchSize(size = 50)
+    private List<RegistroHoras> registrosHoras = new ArrayList<>();
+
     public Usuario() {
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getSobrenome() {
-        return sobrenome;
-    }
-
-    public void setSobrenome(String sobrenome) {
-        this.sobrenome = sobrenome;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getCargo() {
-        return cargo;
-    }
-
-    public void setCargo(String cargo) {
-        this.cargo = cargo;
-    }
-
-    public String getSenha() {
-        return senha;
-    }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
-    }
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+    public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
+    public String getSobrenome() { return sobrenome; }
+    public void setSobrenome(String sobrenome) { this.sobrenome = sobrenome; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getCargo() { return cargo; }
+    public void setCargo(String cargo) { this.cargo = cargo; }
+    public String getSenha() { return senha; }
+    public void setSenha(String senha) { this.senha = senha; }
+    public List<ColaboradorTarefa> getTarefasAtribuidas() { return tarefasAtribuidas; }
+    public List<RegistroHoras> getRegistrosHoras() { return registrosHoras; }
 }

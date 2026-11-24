@@ -210,6 +210,7 @@ export function CreateProjectForm({ onClose, project }) {
       tipoImovel: data.propertyType,
       areaM2: data.area ? Number(String(data.area).replace(',', '.')) : null,
       unidadeNumero: data.number,
+      numero: data.number ? data.number.slice(0, 10) : '',
       condominio: data.condo,
       matricula: data.registry,
       cep: data.zip, logradouro: data.street, complemento: data.complement,

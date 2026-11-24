@@ -6,6 +6,7 @@ import logo from '@/shared/assets/faisca-logo.png';
 import { login } from '@/shared/api/auth';
 import { useClients } from '@/entities/client';
 import { useProjects } from '@/entities/project';
+import { useSuppliers } from '@/entities/supplier';
 import { useTasks } from '@/entities/task';
 import { useCollaborators } from '@/entities/collaborator';
 import { usePageTitle } from '@/shared/lib/use-page-title';
@@ -17,6 +18,7 @@ export function LoginPage() {
   const navigate = useNavigate();
   const clients = useClients();
   const projects = useProjects();
+  const suppliers = useSuppliers();
   const tasks = useTasks();
   const collaborators = useCollaborators();
   const [showPassword, setShowPassword] = useState(false);
@@ -39,7 +41,13 @@ export function LoginPage() {
 
     try {
       await login({ email, senha });
-      await Promise.all([clients.reload(), projects.reload(), tasks.reload(), collaborators.reload()]);
+      await Promise.all([
+        clients.reload(),
+        projects.reload(),
+        suppliers.reload(),
+        tasks.reload(),
+        collaborators.reload(),
+      ]);
       navigate('/dashboard');
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 401) {

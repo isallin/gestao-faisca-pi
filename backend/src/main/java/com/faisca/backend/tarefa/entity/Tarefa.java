@@ -32,8 +32,9 @@ public class Tarefa {
     @Column(name = "nome", length = 200)
     private String nome;
 
-    @Column(name = "prioridade", length = 45)
-    private String prioridade;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "prioridade_id")
+    private Prioridade prioridadeRef;
 
     @Column(name = "data_inicio_prev")
     private LocalDateTime dataInicioPrev;
@@ -54,25 +55,32 @@ public class Tarefa {
     @Column(name = "criadoPor")
     private Integer criadoPor;
 
-    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.PERSIST)
+    @OneToMany(mappedBy = "tarefa", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, orphanRemoval = true)
     @OrderBy("id DESC")
     @BatchSize(size = 50)
     private List<StatusTarefa> historicoStatus = new ArrayList<>();
 
-    @OneToMany(mappedBy = "tarefa")
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.REMOVE)
     @BatchSize(size = 50)
     private List<RegistroHoras> registrosHoras = new ArrayList<>();
 
     @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     @BatchSize(size = 50)
     private List<ChecklistItem> checklist = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(name = "colaborador_tarefa",
-            joinColumns = @JoinColumn(name = "pkTarefa"),
-            inverseJoinColumns = @JoinColumn(name = "pkColaborador"))
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     @BatchSize(size = 50)
-    private List<Usuario> colaboradores = new ArrayList<>();
+    private List<Subtarefa> subtarefas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
+    private List<ColaboradorTarefa> atribuicoes = new ArrayList<>();
+
+    @OneToMany(mappedBy = "tarefa", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
+    private List<TarefaFase> tarefasFases = new ArrayList<>();
 
     public void adicionarStatus(StatusTarefa status) {
         status.setTarefa(this);
@@ -86,10 +94,21 @@ public class Tarefa {
         return historicoStatus.get(0).getStatus();
     }
 
+    /** Compatibilidade retroativa com consumidores que leem a lista de colaboradores da tarefa. */
+    public List<Usuario> getColaboradores() {
+        return atribuicoes.stream().map(ColaboradorTarefa::getColaborador).toList();
+    }
+
+    public String getPrioridadeNome() {
+        return prioridadeRef != null ? prioridadeRef.getNome() : null;
+    }
+
     public List<StatusTarefa> getHistoricoStatus() { return historicoStatus; }
     public List<RegistroHoras> getRegistrosHoras() { return registrosHoras; }
     public List<ChecklistItem> getChecklist() { return checklist; }
-    public List<Usuario> getColaboradores() { return colaboradores; }
+    public List<Subtarefa> getSubtarefas() { return subtarefas; }
+    public List<ColaboradorTarefa> getAtribuicoes() { return atribuicoes; }
+    public List<TarefaFase> getTarefasFases() { return tarefasFases; }
 
     public Integer getId() { return id; }
     public Projeto getProjeto() { return projeto; }
@@ -101,8 +120,8 @@ public class Tarefa {
 
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
-    public String getPrioridade() { return prioridade; }
-    public void setPrioridade(String prioridade) { this.prioridade = prioridade; }
+    public Prioridade getPrioridadeRef() { return prioridadeRef; }
+    public void setPrioridadeRef(Prioridade prioridadeRef) { this.prioridadeRef = prioridadeRef; }
     public LocalDateTime getDataInicioPrev() { return dataInicioPrev; }
     public void setDataInicioPrev(LocalDateTime dataInicioPrev) { this.dataInicioPrev = dataInicioPrev; }
     public LocalDateTime getDataFimPrev() { return dataFimPrev; }

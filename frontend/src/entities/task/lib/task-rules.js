@@ -9,7 +9,7 @@ export function taskTone(task) {
   return 'bar-primary';
 }
 
-const PRIORITY_WEIGHT = { Crítica: 0, Alta: 1, Média: 2, Baixa: 3 };
+const PRIORITY_WEIGHT = { Crítica: 0, Alta: 1, Média: 2, Moderada: 2, Baixa: 3 };
 export const TASK_PRIORITIES = ['Baixa', 'Moderada', 'Média', 'Alta', 'Crítica'];
 
 /** Ordena por data de início e, em empate, por prioridade (Crítica primeiro). Não altera o array original. */
