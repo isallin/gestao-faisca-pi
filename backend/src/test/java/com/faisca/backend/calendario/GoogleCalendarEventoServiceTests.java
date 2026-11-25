@@ -28,13 +28,16 @@ class GoogleCalendarEventoServiceTests {
     }
 
     @Test
-    void eventoDePeriodoMantemDatas() {
+    void eventoDePeriodoGanhaFimExclusivo() {
+        // Período 20→22 (fim inclusivo no Faísca) precisa virar end=23 no Google,
+        // porque o fim de evento de dia inteiro é exclusivo — sem isso o evento
+        // aparece na agenda com um dia a menos.
         EventoCalendario dados = new EventoCalendario("Projeto A", "",
                 LocalDateTime.of(2026, 11, 20, 0, 0), LocalDateTime.of(2026, 11, 22, 0, 0), false);
         Event event = service.montarEvento(dados);
 
         assertEquals("2026-11-20", event.getStart().getDate().toString());
-        assertEquals("2026-11-22", event.getEnd().getDate().toString());
+        assertEquals("2026-11-23", event.getEnd().getDate().toString());
     }
 
     @Test
