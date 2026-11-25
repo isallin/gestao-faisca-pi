@@ -9,7 +9,7 @@ public class DashboardResponse {
     @Schema(description = "Tarefas pendentes na semana") private KpiTarefasResponse weekPending;
     @Schema(description = "Tarefas atrasadas") private KpiTarefasResponse late;
     @Schema(description = "Indicador de horas") private KpiHorasResponse hours;
-    @Schema(description = "Tarefas urgentes de hoje") private List<TarefaUrgenteResponse> urgentToday;
+    @Schema(description = "Tarefas urgentes (hoje e atrasadas)") private List<TarefaUrgenteResponse> urgentToday;
     @Schema(description = "Tarefas agrupadas por mês") private List<TarefasPorMesResponse> months;
 
     public DashboardResponse(KpiTarefasResponse todayPending, KpiTarefasResponse weekPending, KpiTarefasResponse late, KpiHorasResponse hours, List<TarefaUrgenteResponse> urgentToday, List<TarefasPorMesResponse> months) {
