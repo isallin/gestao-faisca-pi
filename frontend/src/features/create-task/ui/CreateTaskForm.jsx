@@ -4,6 +4,7 @@ import { Plus, X } from 'lucide-react';
 import { useCollaborators } from '@/entities/collaborator';
 import { useProjects } from '@/entities/project';
 import { TASK_PRIORITIES, useTasks } from '@/entities/task';
+import { extractApiErrorMessage } from '@/shared/api/http';
 import { readForm } from '@/shared/lib/read-form';
 import {
   Button,
@@ -17,16 +18,30 @@ import {
 } from '@/shared/ui';
 import './CreateTaskForm.css';
 
+const normalizePriorityLabel = (value) => {
+  const trimmed = String(value ?? '').trim();
+  if (!trimmed) return '';
+  if (trimmed.toLowerCase() === 'critica') return 'Crítica';
+  if (trimmed.toLowerCase() === 'media') return 'Média';
+  return trimmed;
+};
+
 /** task: quando informada, o formulário entra em modo de edição. */
 export function CreateTaskForm({ onClose, task }) {
   const tasks = useTasks();
-  const collaborators = useCollaborators().items;
+  const collaboratorsStore = useCollaborators();
+  const collaborators = collaboratorsStore.items;
   const projects = useProjects().items;
   const [error, setError] = useState('');
   const [checklist, setChecklist] = useState(task?.checklist ?? []);
   const isEditing = Boolean(task);
   const statuses = ['Pendente', 'Em andamento', 'In Hold', 'Concluído', 'Cancelado'];
   const categoryOptions = tasks.categories.map((item) => item.nome);
+  const rawPriorities = tasks.priorities?.length
+    ? tasks.priorities.map((item) => normalizePriorityLabel(item.nome)).filter(Boolean)
+    : TASK_PRIORITIES;
+  const currentPriority = normalizePriorityLabel(task?.priority);
+  const priorityOptions = [...new Set(currentPriority ? [...rawPriorities, currentPriority] : rawPriorities)];
   const defaultPhaseId = String(task?.stageId ?? tasks.phases[0]?.id ?? '');
 
   const addItem = () => setChecklist((list) => [...list, { id: Date.now(), text: '', done: false }]);
@@ -38,6 +53,7 @@ export function CreateTaskForm({ onClose, task }) {
     const data = readForm(event.currentTarget);
 
     if (!data.name) return setError('Preencha o nome da tarefa para continuar.');
+    if (!data.priority) return setError('Selecione uma prioridade para continuar.');
     if (data.end < data.start) {
       return setError('Não foi possível salvar: a data de término não pode ser anterior à de início.');
     }
@@ -47,15 +63,24 @@ export function CreateTaskForm({ onClose, task }) {
     const phaseId = Number(data.phaseId || task?.stageId || tasks.phases[0]?.id || 0) || null;
     const phaseName = tasks.phases.find((item) => item.id === phaseId)?.nome ?? task?.stage;
     const member = collaborators.find((item) => item.name === data.member);
+    const selectedPriority = normalizePriorityLabel(data.priority);
+    const priorityEntity = (tasks.priorities ?? []).find(
+      (item) => normalizePriorityLabel(item.nome).toLowerCase() === selectedPriority.toLowerCase(),
+    );
+    const cleanedChecklist = checklist
+      .filter((i) => i.text.trim())
+      .map(({ text, done }) => ({ text: text.trim(), done: Boolean(done) }));
 
     const payload = {
       projetoId: project?.id,
       colaboradorId: member?.id ?? null,
+      colaboradoresIds: member?.id ? [member.id] : [],
       clienteId: project?.clientId,
       categoriaId: category?.id,
       fkTarefaFase: phaseId,
       nome: data.name,
-      prioridade: data.priority,
+      prioridade: selectedPriority,
+      prioridadeId: priorityEntity?.id ?? null,
       dataInicioPrev: data.start ? `${data.start}T00:00:00` : null,
       dataFimPrev: data.end ? `${data.end}T00:00:00` : null,
       dataInicioReal: null,
@@ -66,7 +91,8 @@ export function CreateTaskForm({ onClose, task }) {
       member: data.member,
       category: data.category,
       stage: phaseName,
-      checklist: checklist.filter((i) => i.text.trim()).map(({ text, done }) => ({ text, done })),
+      checklist: cleanedChecklist,
+      subtarefas: cleanedChecklist.map(({ text, done }) => ({ nome: text, check: done })),
     };
 
     setError('');
@@ -84,12 +110,16 @@ export function CreateTaskForm({ onClose, task }) {
     try {
       if (isEditing) await tasks.update(task.id, payload);
       else await tasks.add(payload);
+      collaboratorsStore.reload?.();
       onClose();
     } catch (requestError) {
-      if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
+      const apiMessage = extractApiErrorMessage(requestError);
+      if (apiMessage) {
+        setError(apiMessage);
+      } else if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
         setError('Dados invalidos. Verifique datas e campos obrigatorios.');
       } else if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
-        setError('Projeto, categoria ou fase nao encontrado(a) no backend.');
+        setError('Projeto, categoria, prioridade ou fase nao encontrado(a) no backend.');
       } else {
         setError('Nao foi possivel salvar a tarefa no momento.');
       }
@@ -143,9 +173,9 @@ export function CreateTaskForm({ onClose, task }) {
                 </option>
               ))}
             </SelectField>
-            <SelectField label="Prioridade" name="priority" defaultValue={task?.priority ?? ''}>
+            <SelectField label="Prioridade" name="priority" defaultValue={currentPriority}>
               <option value="" disabled>Selecione...</option>
-              {TASK_PRIORITIES.map((priority) => (
+              {priorityOptions.map((priority) => (
                 <option key={priority} value={priority}>
                   {priority}
                 </option>

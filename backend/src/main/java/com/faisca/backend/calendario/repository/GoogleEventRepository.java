@@ -8,4 +8,5 @@ import java.util.List;
 public interface GoogleEventRepository extends JpaRepository<GoogleEvent, Integer> {
     List<GoogleEvent> findByTipoAndFkOrigem(String tipo, Integer fkOrigem);
     boolean existsByTipoAndFkOrigemAndFkUsuario(String tipo, Integer fkOrigem, Integer fkUsuario);
+    void deleteByFkUsuario(Integer fkUsuario);
 }

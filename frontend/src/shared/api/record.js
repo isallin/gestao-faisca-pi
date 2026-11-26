@@ -1,14 +1,9 @@
-import axios from 'axios';
-import { API_BASE_URL, getAuthToken } from './auth';
+import { createApiClient } from './http';
 
-const http = axios.create({ baseURL: API_BASE_URL });
-http.interceptors.request.use((config) => {
-  const token = getAuthToken();
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+const http = createApiClient();
 
-export const listRecords = async () => (await http.get('/registros')).data;
+export const listRecords = async (params) => (await http.get('/registros', { params })).data;
+export const getRecord = async (id) => (await http.get(`/registros/${encodeURIComponent(id)}`)).data;
 export const createRecord = async (payload) => (await http.post('/registros', payload)).data;
-export const updateRecord = async (id, payload) => (await http.put(`/registros/${id}`, payload)).data;
-export const deleteRecord = async (id) => http.delete(`/registros/${id}`);
+export const updateRecord = async (id, payload) => (await http.put(`/registros/${encodeURIComponent(id)}`, payload)).data;
+export const deleteRecord = async (id) => http.delete(`/registros/${encodeURIComponent(id)}`);

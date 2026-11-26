@@ -1,6 +1,6 @@
 package com.faisca.backend.projeto.dto;
-import io.swagger.v3.oas.annotations.media.Schema;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -60,16 +60,23 @@ public class ProjetoCadastroRequest {
 
     @Schema(description = "CEP opcional", example = "01310-100") @Pattern(regexp = "^$|^\\d{5}-?\\d{3}$") private String cep;
     @Schema(description = "Logradouro opcional", example = "Avenida Paulista") @Size(max = 200) private String logradouro;
+    @Schema(description = "Número do endereço do imóvel (V8)", example = "248") @Size(max = 10) private String numero;
     @Schema(description = "Complemento opcional", example = "Sala 101") @Size(max = 60) private String complemento;
     @Schema(description = "Bairro opcional", example = "Bela Vista") @Size(max = 80) private String bairro;
     @Schema(description = "Cidade opcional", example = "São Paulo") @Size(max = 80) private String cidade;
     @Schema(description = "UF opcional", example = "SP") @Pattern(regexp = "^$|^[A-Za-z]{2}$") private String estado;
     @Schema(description = "País opcional", example = "Brasil") @Size(max = 80) private String pais;
 
+    @Positive(message = "ID de tarefa/fase deve ser positivo")
+    @Schema(description = "ID opcional da fase", example = "1")
+    private Integer fkTarefaFase;
+
     public String getCep() { return cep; }
     public void setCep(String cep) { this.cep = cep; }
     public String getLogradouro() { return logradouro; }
     public void setLogradouro(String logradouro) { this.logradouro = logradouro; }
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
     public String getComplemento() { return complemento; }
     public void setComplemento(String complemento) { this.complemento = complemento; }
     public String getBairro() { return bairro; }
@@ -81,47 +88,30 @@ public class ProjetoCadastroRequest {
     public String getPais() { return pais; }
     public void setPais(String pais) { this.pais = pais; }
 
-    @Positive(message = "ID de tarefa/fase deve ser positivo")
-    @Schema(description = "ID opcional da fase", example = "1")
-    private Integer fkTarefaFase;
-
     public Integer getClienteId() { return clienteId; }
     public void setClienteId(Integer clienteId) { this.clienteId = clienteId; }
-
     public String getCodigo() { return codigo; }
     public void setCodigo(String codigo) { this.codigo = codigo; }
-
     public String getRelacaoProprietario() { return relacaoProprietario; }
     public void setRelacaoProprietario(String relacaoProprietario) { this.relacaoProprietario = relacaoProprietario; }
-
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
-
     public String getTipoImovel() { return tipoImovel; }
     public void setTipoImovel(String tipoImovel) { this.tipoImovel = tipoImovel; }
-
     public BigDecimal getAreaM2() { return areaM2; }
     public void setAreaM2(BigDecimal areaM2) { this.areaM2 = areaM2; }
-
     public String getUnidadeNumero() { return unidadeNumero; }
     public void setUnidadeNumero(String unidadeNumero) { this.unidadeNumero = unidadeNumero; }
-
     public String getCondominio() { return condominio; }
     public void setCondominio(String condominio) { this.condominio = condominio; }
-
     public String getMatricula() { return matricula; }
     public void setMatricula(String matricula) { this.matricula = matricula; }
-
     public LocalDateTime getDataInicio() { return dataInicio; }
     public void setDataInicio(LocalDateTime dataInicio) { this.dataInicio = dataInicio; }
-
     public LocalDateTime getDataFim() { return dataFim; }
     public void setDataFim(LocalDateTime dataFim) { this.dataFim = dataFim; }
-
     public String getObservacao() { return observacao; }
     public void setObservacao(String observacao) { this.observacao = observacao; }
-
     public Integer getFkTarefaFase() { return fkTarefaFase; }
     public void setFkTarefaFase(Integer fkTarefaFase) { this.fkTarefaFase = fkTarefaFase; }
-
 }

@@ -17,8 +17,9 @@ public record EventoCalendario(String summary, String descricao,
 
     public static EventoCalendario deTarefa(Tarefa t) {
         String descricao = t.getObservacao() == null ? "" : t.getObservacao();
+        String prioridade = t.getPrioridadeNome() == null ? "" : t.getPrioridadeNome();
         String contexto = "Projeto: " + t.getProjeto().getCodigo() + " — " + t.getProjeto().getNome()
-                + "\nPrioridade: " + t.getPrioridade()
+                + "\nPrioridade: " + prioridade
                 + "\nStatus: " + t.getStatusAtual();
         return new EventoCalendario(t.getNome(), descricao.isBlank() ? contexto : descricao + "\n\n" + contexto,
                 t.getDataInicioPrev(), t.getDataFimPrev(), false);

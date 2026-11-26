@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Clock3 } from 'lucide-react';
 import { formatDate, hoursBetween, totalHours, useTasks } from '@/entities/task';
+import { getAuthSession } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import { Button, Field, FormAlert, Modal } from '@/shared/ui';
 
@@ -46,8 +47,16 @@ export function TaskDetailModal({ taskId, onClose, startRegistering = false }) {
       return setError('A data/hora de fim deve ser posterior à de início.');
     }
     setError('');
+    const toApiDateTime = (value) => (value?.length === 16 ? `${value}:00` : value);
+    const collaboratorId = getAuthSession()?.usuario?.id ?? task.memberId ?? null;
     try {
-      await addLog({ tarefaId: task.id, inicio: data.start, fim: data.end, descricao: data.note });
+      await addLog({
+        tarefaId: task.id,
+        ...(collaboratorId ? { colaboradorId: collaboratorId } : {}),
+        inicio: toApiDateTime(data.start),
+        fim: toApiDateTime(data.end),
+        descricao: data.note,
+      });
       setView('details');
     } catch {
       setError('Não foi possível salvar o registro de horas.');
