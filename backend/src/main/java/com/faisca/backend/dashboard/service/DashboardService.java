@@ -74,6 +74,10 @@ public class DashboardService {
                 if (fim != null && fim.isBefore(hoje)) {
                     atrasadas++;
                 }
+
+                if (fim != null && (fim.equals(hoje) || fim.isBefore(hoje))) {
+                    urgentes.add(t);
+                }
             }
 
             if (fim != null) {
@@ -81,7 +85,6 @@ public class DashboardService {
                     totalHoje++;
                     if (!concluida) {
                         pendentesHoje++;
-                        urgentes.add(t);
                     }
                 }
 
@@ -115,7 +118,11 @@ public class DashboardService {
             }
         }
 
-        urgentes.sort(Comparator.comparingInt(t -> pesoPrioridade(t.getPrioridadeNome())));
+        urgentes.sort(
+                Comparator
+                        .comparing(this::dataEntregaPrevista)
+                        .thenComparingInt(t -> pesoPrioridade(t.getPrioridade()))
+        );
 
         List<TarefaUrgenteResponse> urgentesResponse = new ArrayList<>();
         for (int i = 0; i < urgentes.size(); i++) {
@@ -184,10 +191,15 @@ public class DashboardService {
         return switch (prioridade.trim().toLowerCase(Locale.ROOT)) {
             case "crítica", "critica" -> 0;
             case "alta" -> 1;
-            case "média", "media", "moderada" -> 2;
-            case "baixa" -> 3;
+            case "média", "media" -> 2;
+            case "moderada" -> 3;
+            case "baixa" -> 4;
             default -> 99;
         };
+    }
+
+    private LocalDate dataEntregaPrevista(Tarefa t) {
+        return t.getDataFimPrev() == null ? LocalDate.MAX : t.getDataFimPrev().toLocalDate();
     }
 
     private int percentual(double parte, double total) {
