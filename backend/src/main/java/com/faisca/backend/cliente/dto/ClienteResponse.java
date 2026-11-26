@@ -1,7 +1,9 @@
 package com.faisca.backend.cliente.dto;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.Map;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.util.List;
+import java.util.Map;
 
 public class ClienteResponse {
 
@@ -14,6 +16,8 @@ public class ClienteResponse {
     @Schema(description = "E-mail", example = "joao@email.com") private String email;
     @Schema(description = "Observações", example = "Contato pela manhã") private String note;
     @Schema(description = "Detalhes variáveis conforme PF/PJ: phone, email, note, zip, street, number, complement, neighborhood, city, state, country; PF: name, last, cpf, rg, birth, marital, job; PJ: company, cnpj, repName, repCpf, repRole, repEmail, repPhone") private Map<String, Object> details;
+    @Schema(description = "Lista estruturada de endereços do cliente (V8)") private List<EnderecoClienteResponse> enderecos;
+    @Schema(description = "Lista estruturada de representantes legais (PJ, V8)") private List<RepresentanteLegalResponse> representantes;
 
     public ClienteResponse(Integer id, String name, String type, String projects, String address, String phone, String email, String note) {
         this.id = id;
@@ -26,37 +30,18 @@ public class ClienteResponse {
         this.note = note;
     }
 
-    public Integer getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public String getProjects() {
-        return projects;
-    }
-
-    public String getAddress() {
-        return address;
-    }
-
-    public String getPhone() {
-        return phone;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getNote() {
-        return note;
-    }
+    public Integer getId() { return id; }
+    public String getName() { return name; }
+    public String getType() { return type; }
+    public String getProjects() { return projects; }
+    public String getAddress() { return address; }
+    public String getPhone() { return phone; }
+    public String getEmail() { return email; }
+    public String getNote() { return note; }
     public Map<String, Object> getDetails() { return details; }
     public void setDetails(Map<String, Object> details) { this.details = details; }
+    public List<EnderecoClienteResponse> getEnderecos() { return enderecos; }
+    public void setEnderecos(List<EnderecoClienteResponse> enderecos) { this.enderecos = enderecos; }
+    public List<RepresentanteLegalResponse> getRepresentantes() { return representantes; }
+    public void setRepresentantes(List<RepresentanteLegalResponse> representantes) { this.representantes = representantes; }
 }

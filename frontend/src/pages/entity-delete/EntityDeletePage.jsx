@@ -5,6 +5,7 @@ import { useProjects } from '@/entities/project';
 import { useTasks } from '@/entities/task';
 import { useCollaborators } from '@/entities/collaborator';
 import { useSuppliers } from '@/entities/supplier';
+import { extractApiErrorMessage } from '@/shared/api/http';
 import { Button, FormAlert } from '@/shared/ui';
 
 function useRecordsStore() {
@@ -40,9 +41,10 @@ export function EntityDeletePage({ kind }) {
     setBusy(true);
     try { await remove(id); navigate(back, { replace: true }); }
     catch (cause) {
+      const backendMessage = extractApiErrorMessage(cause);
       setError(cause.response?.status === 409
-        ? `Não é possível excluir este ${label}: existem registros vinculados.`
-        : `Não foi possível excluir este ${label}. Tente novamente.`);
+        ? (backendMessage || `Não é possível excluir este ${label}: existem registros vinculados.`)
+        : (backendMessage || `Não foi possível excluir este ${label}. Tente novamente.`));
       setBusy(false);
     }
   };

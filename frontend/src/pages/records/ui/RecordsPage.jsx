@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useProjects } from '@/entities/project';
 import { formatDate, useTasks } from '@/entities/task';
 import { usePageTitle } from '@/shared/lib/use-page-title';
+import { getAuthSession } from '@/shared/api/auth';
 import { readForm } from '@/shared/lib/read-form';
 import { Field, Form, FormActions, FormAlert, FormPair, Modal, SelectField } from '@/shared/ui';
 import { ALL, EntityList } from '@/widgets/entity-list';
@@ -61,8 +62,12 @@ export function RecordsPage() {
       setModalError('Selecione a tarefa e informe um período válido.');
       return;
     }
+    const selectedTask = tasks.find((t) => t.id === Number(data.taskId));
+    const collaboratorId =
+      editing?.collaboratorId ?? getAuthSession()?.usuario?.id ?? selectedTask?.memberId ?? null;
     const payload = {
       tarefaId: Number(data.taskId),
+      ...(collaboratorId ? { colaboradorId: collaboratorId } : {}),
       inicio: toApiDateTime(data.start),
       fim: toApiDateTime(data.end),
       descricao: data.note,

@@ -127,13 +127,14 @@ public class DashboardService {
         List<TarefaUrgenteResponse> urgentesResponse = new ArrayList<>();
         for (int i = 0; i < urgentes.size(); i++) {
             Tarefa t = urgentes.get(i);
+            String prioridade = t.getPrioridadeNome() == null ? "" : t.getPrioridadeNome();
 
             urgentesResponse.add(new TarefaUrgenteResponse(
                     t.getId(),
                     t.getNome(),
                     t.getProjeto() == null ? "" : t.getProjeto().getCodigo(),
                     responsaveis(t),
-                    t.getPrioridade()
+                    prioridade
             ));
         }
 
@@ -183,7 +184,7 @@ public class DashboardService {
     }
 
     private int pesoPrioridade(String prioridade) {
-        if (prioridade == null) {
+        if (prioridade == null || prioridade.isBlank()) {
             return 99;
         }
 

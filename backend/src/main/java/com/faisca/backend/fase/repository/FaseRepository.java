@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface FaseRepository extends JpaRepository<Fase, Integer> {
     List<Fase> findAllByOrderByOrdemAsc();
+    boolean existsByNomeIgnoreCase(String nome);
+    boolean existsByNomeIgnoreCaseAndIdNot(String nome, Integer id);
 }

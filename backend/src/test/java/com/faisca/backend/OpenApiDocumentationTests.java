@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -53,11 +54,20 @@ class OpenApiDocumentationTests {
         assertEquals("http", spec.path("components").path("securitySchemes").path("bearerAuth").path("type").asText());
         assertEquals("bearer", spec.path("components").path("securitySchemes").path("bearerAuth").path("scheme").asText());
 
-        String[] paths = {"/api/auth/login", "/api/usuarios", "/api/clientes", "/api/projetos",
-                "/api/tarefas", "/api/tarefas/categorias", "/api/tarefas/fases", "/api/registros",
-                "/api/fases", "/api/dashboard", "/api/fornecedores", "/api/calendar/status",
-                "/api/calendar/connect", "/api/calendar/callback", "/api/calendar/conexao"};
-        for (String path : paths) assertTrue(spec.path("paths").has(path), path);
+        String[] paths = {
+                "/api/auth/login", "/api/usuarios", "/api/usuarios/{id}/tarefas",
+                "/api/clientes", "/api/clientes/{clienteId}/representantes", "/api/clientes/{clienteId}/enderecos",
+                "/api/projetos", "/api/projetos/{id}/endereco", "/api/projetos/{id}/fornecedores", "/api/projetos/{id}/fases",
+                "/api/tarefas", "/api/tarefas/categorias", "/api/tarefas/fases", "/api/tarefas/prioridades",
+                "/api/tarefas/{tarefaId}/subtarefas", "/api/tarefas/{tarefaId}/colaboradores",
+                "/api/prioridades", "/api/tarefas-fases",
+                "/api/registros", "/api/fases", "/api/dashboard",
+                "/api/fornecedores", "/api/fornecedores/categorias",
+                "/api/fornecedores/{fornecedorId}/contatos", "/api/fornecedores/{fornecedorId}/projetos",
+                "/api/calendar/status", "/api/calendar/connect", "/api/calendar/callback", "/api/calendar/conexao"
+        };
+        for (String path : paths) assertTrue(spec.path("paths").has(path), "Rota ausente no OpenAPI: " + path);
+
         int operationCount = 0;
         var pathEntries = spec.path("paths").fields();
         while (pathEntries.hasNext()) {
@@ -73,7 +83,7 @@ class OpenApiDocumentationTests {
                 assertTrue(doc.path("tags").size() >= 1, pathEntry.getKey() + " " + operation.getKey());
             }
         }
-        assertEquals(41, operationCount);
+        assertTrue(operationCount >= 80, "Esperava >= 80 operações com V8, encontrou " + operationCount);
         assertEquals("Autenticação", spec.path("paths").path("/api/auth/login").path("post").path("tags").get(0).asText());
         assertEquals("Clientes", spec.path("paths").path("/api/clientes").path("get").path("tags").get(0).asText());
         assertTrue(spec.path("paths").path("/api/clientes").path("get").path("security").get(0).has("bearerAuth"));

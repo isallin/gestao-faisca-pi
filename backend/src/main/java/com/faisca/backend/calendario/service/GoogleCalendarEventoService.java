@@ -81,10 +81,12 @@ public class GoogleCalendarEventoService {
         if (fim.isBefore(inicio)) {
             throw new IllegalArgumentException("A data de fim deve ser igual ou posterior à data de início");
         }
-        // O Google trata o fim de evento de dia inteiro como exclusivo (start + 1 dia).
-        if (fim.equals(inicio)) fim = inicio.plusDays(1);
+        // O Google trata o fim de evento de dia inteiro como EXCLUSIVO: o último dia
+        // do período (inclusive no Faísca) precisa ser enviado como dia + 1, senão o
+        // evento aparece na agenda com um dia a menos.
+        LocalDate fimExclusivo = fim.plusDays(1);
         event.setStart(new EventDateTime().setDate(new DateTime(inicio.toString())));
-        event.setEnd(new EventDateTime().setDate(new DateTime(fim.toString())));
+        event.setEnd(new EventDateTime().setDate(new DateTime(fimExclusivo.toString())));
         return event;
     }
 

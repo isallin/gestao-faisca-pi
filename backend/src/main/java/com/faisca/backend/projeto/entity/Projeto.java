@@ -1,10 +1,15 @@
 package com.faisca.backend.projeto.entity;
 
 import com.faisca.backend.cliente.entity.Cliente;
+import com.faisca.backend.fornecedor.entity.FornecedorProjeto;
+import com.faisca.backend.tarefa.entity.TarefaFase;
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "projeto")
@@ -45,6 +50,7 @@ public class Projeto {
 
     @Column(name = "cep", length = 8) private String cep;
     @Column(name = "logradouro", length = 200) private String logradouro;
+    @Column(name = "numero", length = 10) private String numero;
     @Column(name = "complemento", length = 60) private String complemento;
     @Column(name = "bairro", length = 80) private String bairro;
     @Column(name = "cidade", length = 80) private String cidade;
@@ -66,6 +72,24 @@ public class Projeto {
 
     @Column(name = "fkTarefaFase")
     private Integer fkTarefaFase;
+
+    @OneToOne(mappedBy = "projeto", cascade = CascadeType.ALL, orphanRemoval = true)
+    private EnderecoProjeto enderecoProjeto;
+
+    @OneToMany(mappedBy = "projeto")
+    @BatchSize(size = 50)
+    private List<FornecedorProjeto> fornecedores = new ArrayList<>();
+
+    @OneToMany(mappedBy = "projeto")
+    @BatchSize(size = 50)
+    private List<TarefaFase> tarefasFases = new ArrayList<>();
+
+    public void setEnderecoProjeto(EnderecoProjeto enderecoProjeto) {
+        this.enderecoProjeto = enderecoProjeto;
+        if (enderecoProjeto != null) {
+            enderecoProjeto.setProjeto(this);
+        }
+    }
 
     public Integer getId() { return id; }
 
@@ -99,6 +123,8 @@ public class Projeto {
     public void setCep(String cep) { this.cep = cep; }
     public String getLogradouro() { return logradouro; }
     public void setLogradouro(String logradouro) { this.logradouro = logradouro; }
+    public String getNumero() { return numero; }
+    public void setNumero(String numero) { this.numero = numero; }
     public String getComplemento() { return complemento; }
     public void setComplemento(String complemento) { this.complemento = complemento; }
     public String getBairro() { return bairro; }
@@ -125,4 +151,7 @@ public class Projeto {
     public Integer getCriadoPor() { return criadoPor; }
     public void setCriadoPor(Integer criadoPor) { this.criadoPor = criadoPor; }
 
+    public EnderecoProjeto getEnderecoProjeto() { return enderecoProjeto; }
+    public List<FornecedorProjeto> getFornecedores() { return fornecedores; }
+    public List<TarefaFase> getTarefasFases() { return tarefasFases; }
 }

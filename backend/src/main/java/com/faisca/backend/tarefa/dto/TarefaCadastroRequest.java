@@ -1,10 +1,11 @@
 package com.faisca.backend.tarefa.dto;
-import io.swagger.v3.oas.annotations.media.Schema;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
-import jakarta.validation.Valid;
 
 public class TarefaCadastroRequest {
 
@@ -28,10 +29,13 @@ public class TarefaCadastroRequest {
     @Size(max = 200, message = "Nome deve ter no máximo 200 caracteres")
     private String nome;
 
-    @NotBlank(message = "Prioridade é obrigatória")
-    @Schema(description = "Prioridade", allowableValues = {"Baixa", "Moderada", "Média", "Alta", "Crítica"}, example = "Moderada", requiredMode = Schema.RequiredMode.REQUIRED)
-    @Pattern(regexp = "Baixa|Moderada|Média|Media|Alta|Crítica|Critica", message = "Prioridade inválida")
+    @Schema(description = "Nome da prioridade (obrigatório caso prioridadeId não seja informado)", example = "Moderada")
+    @Size(max = 45, message = "Prioridade deve ter no máximo 45 caracteres")
     private String prioridade;
+
+    @Positive(message = "ID da prioridade deve ser positivo")
+    @Schema(description = "ID da prioridade na tabela prioridade (V8)", example = "2")
+    private Integer prioridadeId;
 
     @NotNull(message = "Data de início prevista é obrigatória")
     @Schema(description = "Início previsto em horário local ISO 8601", example = "2026-11-02T09:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -56,16 +60,30 @@ public class TarefaCadastroRequest {
     @Size(max = 70, message = "Status deve ter no máximo 70 caracteres")
     private String status;
 
-    @Schema(description = "ID opcional do colaborador", example = "1") private Integer colaboradorId;
-    @Schema(description = "Itens opcionais do checklist") private List<@Valid ChecklistRequest> checklist;
+    @Schema(description = "ID opcional do colaborador principal (compatibilidade)", example = "1")
+    private Integer colaboradorId;
+
+    @Schema(description = "Lista de IDs dos colaboradores atribuídos (V8 N:N)")
+    private List<@Positive Integer> colaboradoresIds;
+
+    @Schema(description = "Itens opcionais do checklist (compatibilidade)")
+    private List<@Valid ChecklistRequest> checklist;
+
+    @Schema(description = "Lista opcional de subtarefas (V8)")
+    private List<@Valid SubtarefaRequest> subtarefas;
 
     public record ChecklistRequest(
             @Schema(description = "Descrição do item", example = "Conferir medidas", requiredMode = Schema.RequiredMode.REQUIRED) @NotBlank @Size(max = 200) String text,
             @Schema(description = "Item concluído", example = "false") boolean done) {}
+
     public Integer getColaboradorId() { return colaboradorId; }
     public void setColaboradorId(Integer colaboradorId) { this.colaboradorId = colaboradorId; }
+    public List<Integer> getColaboradoresIds() { return colaboradoresIds; }
+    public void setColaboradoresIds(List<Integer> colaboradoresIds) { this.colaboradoresIds = colaboradoresIds; }
     public List<ChecklistRequest> getChecklist() { return checklist; }
     public void setChecklist(List<ChecklistRequest> checklist) { this.checklist = checklist; }
+    public List<SubtarefaRequest> getSubtarefas() { return subtarefas; }
+    public void setSubtarefas(List<SubtarefaRequest> subtarefas) { this.subtarefas = subtarefas; }
 
     public Integer getProjetoId() { return projetoId; }
     public void setProjetoId(Integer projetoId) { this.projetoId = projetoId; }
@@ -77,6 +95,8 @@ public class TarefaCadastroRequest {
     public void setNome(String nome) { this.nome = nome; }
     public String getPrioridade() { return prioridade; }
     public void setPrioridade(String prioridade) { this.prioridade = prioridade; }
+    public Integer getPrioridadeId() { return prioridadeId; }
+    public void setPrioridadeId(Integer prioridadeId) { this.prioridadeId = prioridadeId; }
     public LocalDateTime getDataInicioPrev() { return dataInicioPrev; }
     public void setDataInicioPrev(LocalDateTime dataInicioPrev) { this.dataInicioPrev = dataInicioPrev; }
     public LocalDateTime getDataFimPrev() { return dataFimPrev; }

@@ -24,10 +24,11 @@ function MaskedField({ label, className = 'field', mask, dispatch, ...props }) {
 
 /** supplier: quando informado, o formulário entra em modo de edição. */
 export function CreateSupplierForm({ onClose, supplier }) {
-  const { add, update } = useSuppliers();
+  const { add, update, categories: storedCategories = [] } = useSuppliers();
   const projects = useProjects().items;
   const isEditing = Boolean(supplier);
   const [error, setError] = useState('');
+  const categoryOptions = [...new Set([...CATEGORIES, ...storedCategories.map((c) => c.nome).filter(Boolean)])];
   const codes = projects.map((p) => p.code);
   // Preserva valores como "RES-024, INT-032" que não existem como opção única.
   const hasCustomProjects = isEditing && supplier.projects && !codes.includes(supplier.projects);
@@ -36,9 +37,13 @@ export function CreateSupplierForm({ onClose, supplier }) {
     event.preventDefault();
     const data = readForm(event.currentTarget);
     if (!data.name.trim() || !data.category) return setError('Informe nome e categoria.');
+    const payload = {
+      ...data,
+      jaTrabalhei: Boolean(data.projects && data.projects.trim()),
+    };
     try {
-      if (isEditing) await update(supplier.id, data);
-      else await add(data);
+      if (isEditing) await update(supplier.id, payload);
+      else await add(payload);
       onClose();
     } catch {
       setError('Não foi possível salvar o fornecedor. Verifique os dados e tente novamente.');
@@ -52,7 +57,7 @@ export function CreateSupplierForm({ onClose, supplier }) {
         <FormColumns cols={2}>
           <div>
             <Field label="Nome" name="name" placeholder="Nome do fornecedor" defaultValue={supplier?.name} />
-            <SelectField label="Categoria" name="category" options={CATEGORIES} defaultValue={supplier?.category} />
+            <SelectField label="Categoria" name="category" options={categoryOptions} defaultValue={supplier?.category} />
             <MaskedField
               label="Telefone 1"
               name="phone"

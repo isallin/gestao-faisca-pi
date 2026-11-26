@@ -14,7 +14,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -25,11 +25,12 @@ import java.util.Optional;
 public class AuthController {
     private final UsuarioRepository repository;
     private final JwtUtil jwtUtil;
-    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder encoder;
 
-    public AuthController(UsuarioRepository repository, JwtUtil jwtUtil) {
+    public AuthController(UsuarioRepository repository, JwtUtil jwtUtil, PasswordEncoder encoder) {
         this.repository = repository;
         this.jwtUtil = jwtUtil;
+        this.encoder = encoder;
     }
 
     @PostMapping("/login")

@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { getAuthToken } from '@/shared/api/auth';
-import { createCollaborator, deleteCollaborator, listCollaborators, updateCollaborator } from '@/shared/api/collaborator';
+import * as collaboratorApi from '@/shared/api/collaborator';
 
 const CollaboratorsContext = createContext(null);
 
@@ -10,15 +10,19 @@ export function CollaboratorsProvider({ children }) {
   const [error, setError] = useState('');
 
   const reload = useCallback(async () => {
-    if (!getAuthToken()) return;
+    if (!getAuthToken()) {
+      setError('');
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     setError('');
     try {
-      const records = await listCollaborators();
+      const records = await collaboratorApi.listCollaborators();
       setItems(records.map(mapCollaboratorResponse));
     } catch {
-      setError('Nao foi possivel carregar os colaboradores.');
+      setError('Não foi possível carregar os colaboradores.');
     } finally {
       setIsLoading(false);
     }
@@ -35,20 +39,26 @@ export function CollaboratorsProvider({ children }) {
       error,
       reload,
       add: async (payload) => {
-        const created = await createCollaborator(payload);
+        const created = await collaboratorApi.createCollaborator(payload);
         const mapped = mapCollaboratorResponse(created);
         setItems((list) => [mapped, ...list]);
         return mapped;
       },
       update: async (id, payload) => {
-        const updated = mapCollaboratorResponse(await updateCollaborator(id, payload));
-        setItems((list) => list.map((item) => item.id === Number(id) ? updated : item));
+        const updated = mapCollaboratorResponse(await collaboratorApi.updateCollaborator(id, payload));
+        setItems((list) => list.map((item) => (item.id === Number(id) ? updated : item)));
+        return updated;
+      },
+      patch: async (id, payload) => {
+        const updated = mapCollaboratorResponse(await collaboratorApi.patchCollaborator(id, payload));
+        setItems((list) => list.map((item) => (item.id === Number(id) ? updated : item)));
         return updated;
       },
       remove: async (id) => {
-        await deleteCollaborator(id);
+        await collaboratorApi.deleteCollaborator(id);
         setItems((list) => list.filter((item) => item.id !== Number(id)));
       },
+      listTasks: async (id) => collaboratorApi.listCollaboratorTasks(id),
     }),
     [error, isLoading, items, reload],
   );
@@ -62,12 +72,25 @@ export function useCollaborators() {
   return value;
 }
 
-function mapCollaboratorResponse(item) {
+export function mapCollaboratorResponse(item) {
+  const firstName = (item.nome ?? '').trim();
+  const lastName = (item.sobrenome ?? '').trim();
+  const projectCodes = Array.isArray(item.projetosCodigos) ? item.projetosCodigos : [];
+  const projects =
+    typeof item.projetos === 'string' && item.projetos.trim()
+      ? item.projetos.trim()
+      : projectCodes.join(', ');
+
   return {
     id: item.id,
-    name: `${item.nome} ${item.sobrenome}`.trim(),
-    role: item.cargo,
-    projects: '',
-    email: item.email,
+    firstName,
+    lastName,
+    name: `${firstName} ${lastName}`.trim(),
+    role: item.cargo ?? '',
+    projects,
+    projectIds: Array.isArray(item.projetosIds) ? item.projetosIds : [],
+    projectCodes,
+    taskIds: Array.isArray(item.tarefasIds) ? item.tarefasIds : [],
+    email: item.email ?? '',
   };
 }

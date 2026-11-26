@@ -1,10 +1,13 @@
 package com.faisca.backend.projeto.dto;
-import io.swagger.v3.oas.annotations.media.Schema;
 
+import com.faisca.backend.fornecedor.dto.FornecedorProjetoResponse;
+import com.faisca.backend.projeto.entity.EnderecoProjeto;
 import com.faisca.backend.projeto.entity.Projeto;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class ProjetoResponse {
 
@@ -20,6 +23,7 @@ public class ProjetoResponse {
     @Schema(description = "Matrícula", example = "12345") private final String matricula;
     @Schema(description = "CEP", example = "01310-100") private final String cep;
     @Schema(description = "Logradouro", example = "Avenida Paulista") private final String logradouro;
+    @Schema(description = "Número do endereço (V8)", example = "248") private final String numero;
     @Schema(description = "Complemento", example = "Sala 101") private final String complemento;
     @Schema(description = "Bairro", example = "Bela Vista") private final String bairro;
     @Schema(description = "Cidade", example = "São Paulo") private final String cidade;
@@ -29,8 +33,11 @@ public class ProjetoResponse {
     @Schema(description = "Fim em horário local ISO 8601", example = "2026-12-02T18:00:00") private final LocalDateTime dataFim;
     @Schema(description = "Observações", example = "Adequação do espaço") private final String observacao;
     @Schema(description = "ID da fase", example = "1") private final Integer fkTarefaFase;
+    @Schema(description = "Endereço dedicado do projeto (tabela endereco_projeto V8)") private final EnderecoProjetoResponse endereco;
+    @Schema(description = "Fornecedores vinculados ao projeto (tabela fornecedor_projeto V8)") private final List<FornecedorProjetoResponse> fornecedores;
 
     public ProjetoResponse(Projeto projeto) {
+        EnderecoProjeto ep = projeto.getEnderecoProjeto();
         this.id = projeto.getId();
         this.clienteId = projeto.getCliente().getId();
         this.codigo = projeto.getCodigo();
@@ -41,13 +48,20 @@ public class ProjetoResponse {
         this.unidadeNumero = projeto.getUnidadeNumero();
         this.condominio = projeto.getCondominio();
         this.matricula = projeto.getMatricula();
-        this.cep = projeto.getCep(); this.logradouro = projeto.getLogradouro();
-        this.complemento = projeto.getComplemento(); this.bairro = projeto.getBairro();
-        this.cidade = projeto.getCidade(); this.estado = projeto.getEstado(); this.pais = projeto.getPais();
+        this.cep = projeto.getCep() != null ? projeto.getCep() : (ep != null ? ep.getCep() : null);
+        this.logradouro = projeto.getLogradouro() != null ? projeto.getLogradouro() : (ep != null ? ep.getLogradouro() : null);
+        this.numero = projeto.getNumero() != null ? projeto.getNumero() : (ep != null ? ep.getNumero() : null);
+        this.complemento = projeto.getComplemento() != null ? projeto.getComplemento() : (ep != null ? ep.getComplemento() : null);
+        this.bairro = projeto.getBairro() != null ? projeto.getBairro() : (ep != null ? ep.getBairro() : null);
+        this.cidade = projeto.getCidade() != null ? projeto.getCidade() : (ep != null ? ep.getCidade() : null);
+        this.estado = projeto.getEstado() != null ? projeto.getEstado() : (ep != null ? ep.getEstado() : null);
+        this.pais = projeto.getPais() != null ? projeto.getPais() : (ep != null ? ep.getPais() : null);
         this.dataInicio = projeto.getDataInicio();
         this.dataFim = projeto.getDataFim();
         this.observacao = projeto.getObservacao();
         this.fkTarefaFase = projeto.getFkTarefaFase();
+        this.endereco = ep != null ? new EnderecoProjetoResponse(ep) : null;
+        this.fornecedores = projeto.getFornecedores().stream().map(FornecedorProjetoResponse::new).toList();
     }
 
     public Integer getId() { return id; }
@@ -62,6 +76,7 @@ public class ProjetoResponse {
     public String getMatricula() { return matricula; }
     public String getCep() { return cep; }
     public String getLogradouro() { return logradouro; }
+    public String getNumero() { return numero; }
     public String getComplemento() { return complemento; }
     public String getBairro() { return bairro; }
     public String getCidade() { return cidade; }
@@ -71,4 +86,6 @@ public class ProjetoResponse {
     public LocalDateTime getDataFim() { return dataFim; }
     public String getObservacao() { return observacao; }
     public Integer getFkTarefaFase() { return fkTarefaFase; }
+    public EnderecoProjetoResponse getEndereco() { return endereco; }
+    public List<FornecedorProjetoResponse> getFornecedores() { return fornecedores; }
 }
