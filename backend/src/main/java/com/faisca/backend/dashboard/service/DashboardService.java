@@ -74,6 +74,10 @@ public class DashboardService {
                 if (fim != null && fim.isBefore(hoje)) {
                     atrasadas++;
                 }
+
+                if (fim != null && (fim.equals(hoje) || fim.isBefore(hoje))) {
+                    urgentes.add(t);
+                }
             }
 
             if (fim != null) {

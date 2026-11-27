@@ -11,6 +11,7 @@ import { useProjects } from '@/entities/project';
 import { getDashboard } from '@/shared/api/dashboard';
 import { usePageTitle } from '@/shared/lib/use-page-title';
 import { SelectField } from '@/shared/ui';
+import { TaskDetailModal } from '@/pages/tasks/ui/TaskDetailModal';
 import { KpiCard } from './KpiCard';
 import './DashboardPage.css';
 
@@ -26,6 +27,7 @@ export function DashboardPage() {
   usePageTitle('Dashboard');
   const { items: projects } = useProjects();
   const [projectCode, setProjectCode] = useState(ALL_PROJECTS);
+  const [selectedTaskId, setSelectedTaskId] = useState();
   const [dashboard, setDashboard] = useState(() => ({
     todayPending: { value: 0, total: 0, percent: 0 },
     weekPending: { value: 0, total: 0, percent: 0 },
@@ -110,8 +112,8 @@ export function DashboardPage() {
           icon={<CalendarClock />}
           label="Tarefas pendentes (hoje)"
           value={todayPending.value}
-          caption={`de ${todayPending.total} tarefa(s) para hoje`}
-          percentHint="Percentual de tarefas pendentes de hoje"
+          caption={`de ${todayPending.total} de tarefa(s) total(is) para hoje`}
+          percentHint="Percentual de tarefas pendentes de hoje em relação as tarefas totais de hoje"
           tone="amber"
           percent={todayPending.percent}
         />
@@ -119,8 +121,8 @@ export function DashboardPage() {
           icon={<CalendarDays />}
           label="Tarefas pendentes (semana)"
           value={weekPending.value}
-          caption={`de ${weekPending.total} tarefa(s) para essa semana`}
-          percentHint="Percentual de tarefas pendentes da semana"
+          caption={`de ${weekPending.total} tarefa(s) total(is) para essa semana`}
+          percentHint="Percentual de tarefas pendentes da semana em relação as tarefas totais da semana"
           tone="teal"
           percent={weekPending.percent}
         />
@@ -129,7 +131,7 @@ export function DashboardPage() {
           label="Tarefas atrasadas"
           value={late.value}
           caption={`de ${late.total} tarefa(s) pendentes`}
-          percentHint="Percentual das tarefas em aberto que estão atrasadas"
+          percentHint="Percentual das tarefas atrasadas em relação as tarefas pendentes"
           tone="red"
           percent={late.percent}
         />
@@ -232,6 +234,14 @@ export function DashboardPage() {
           {!hasChartData && <p className="chart-empty">Sem tarefas nos últimos 6 meses.</p>}
         </div>
       </section>
+
+      {selectedTaskId && (
+        <TaskDetailModal
+          taskId={selectedTaskId}
+          startRegistering={false}
+          onClose={() => setSelectedTaskId(undefined)}
+        />
+      )}
     </div>
   );
 }
