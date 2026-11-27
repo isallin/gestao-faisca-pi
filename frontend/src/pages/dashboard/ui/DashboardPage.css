@@ -56,27 +56,23 @@
 .dash-panel h2 { display: flex; align-items: center; gap: 8px; }
 .dash-panel header span, .dash-panel header small { color: var(--muted-foreground); }
 
-.urgent-list { display: grid; }
-.urgent-list-scroll { max-height: 260px; overflow-y: auto; }
-.urgent-row { height: 52px; display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--border); }
+.urgent-list { border-top: 1px solid var(--border); }
+.urgent-list.with-scroll { max-height: 292px; overflow-y: auto; }
+.urgent-item { border-bottom: 1px solid var(--border); }
+.urgent-item:last-child { border-bottom: 0; }
+.urgent-item > summary::-webkit-details-marker { display: none; }
 .urgent-row {
-  width: 100%;
-  background: transparent;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 0;
-  color: inherit;
-  text-decoration: none;
-  padding: 0;
-  cursor: pointer;
+  min-height: 52px; display: flex; gap: 12px; align-items: center; cursor: pointer;
+  list-style: none; padding: 6px 0;
 }
-.urgent-row:hover { background: color-mix(in oklab, var(--neutral) 75%, transparent); }
-.urgent-row:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 .urgent-row i { width: 8px; height: 30px; border-radius: 4px; background: var(--primary); }
 .urgent-row i.critical { background: var(--destructive); }
 .urgent-row div { display: grid; }
 .urgent-row small { color: var(--muted-foreground); }
 .urgent-priority { margin-left: auto; color: var(--muted-foreground); }
+.urgent-details { padding: 0 0 12px 20px; color: var(--muted-foreground); display: grid; gap: 4px; }
+.urgent-details p { margin: 0; }
+.urgent-details strong { color: var(--foreground); }
 .dash-empty {
   flex: 1; display: grid; place-content: center; justify-items: center; gap: 6px;
   text-align: center; color: var(--muted-foreground); padding: 24px 0;

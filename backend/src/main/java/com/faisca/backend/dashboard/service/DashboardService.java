@@ -81,6 +81,10 @@ public class DashboardService {
             }
 
             if (fim != null) {
+                if (!concluida && (fim.isEqual(hoje) || fim.isBefore(hoje))) {
+                    urgentes.add(t);
+                }
+
                 if (fim.equals(hoje)) {
                     totalHoje++;
                     if (!concluida) {
@@ -120,8 +124,9 @@ public class DashboardService {
 
         urgentes.sort(
                 Comparator
-                        .comparing(this::dataEntregaPrevista)
-                        .thenComparingInt(t -> pesoPrioridade(t.getPrioridade()))
+                        .comparing((Tarefa t) -> t.getDataFimPrev().toLocalDate())
+                        .thenComparingInt(t -> pesoPrioridade(t.getPrioridadeNome()))
+                        .thenComparing(Tarefa::getNome, Comparator.nullsLast(String::compareToIgnoreCase))
         );
 
         List<TarefaUrgenteResponse> urgentesResponse = new ArrayList<>();
@@ -134,7 +139,10 @@ public class DashboardService {
                     t.getNome(),
                     t.getProjeto() == null ? "" : t.getProjeto().getCodigo(),
                     responsaveis(t),
-                    prioridade
+                    prioridade,
+                    t.getDataFimPrev().toLocalDate(),
+                    fimEmAtraso(t, hoje),
+                    t.getObservacao() == null ? "" : t.getObservacao().trim()
             ));
         }
 
@@ -198,8 +206,8 @@ public class DashboardService {
         };
     }
 
-    private LocalDate dataEntregaPrevista(Tarefa t) {
-        return t.getDataFimPrev() == null ? LocalDate.MAX : t.getDataFimPrev().toLocalDate();
+    private boolean fimEmAtraso(Tarefa t, LocalDate hoje) {
+        return t.getDataFimPrev() != null && t.getDataFimPrev().toLocalDate().isBefore(hoje);
     }
 
     private int percentual(double parte, double total) {
