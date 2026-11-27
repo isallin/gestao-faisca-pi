@@ -77,11 +77,14 @@ public class DashboardService {
             }
 
             if (fim != null) {
+                if (!concluida && (fim.isEqual(hoje) || fim.isBefore(hoje))) {
+                    urgentes.add(t);
+                }
+
                 if (fim.equals(hoje)) {
                     totalHoje++;
                     if (!concluida) {
                         pendentesHoje++;
-                        urgentes.add(t);
                     }
                 }
 
@@ -115,7 +118,12 @@ public class DashboardService {
             }
         }
 
-        urgentes.sort(Comparator.comparingInt(t -> pesoPrioridade(t.getPrioridadeNome())));
+        urgentes.sort(
+                Comparator
+                        .comparing((Tarefa t) -> t.getDataFimPrev().toLocalDate())
+                        .thenComparingInt(t -> pesoPrioridade(t.getPrioridadeNome()))
+                        .thenComparing(Tarefa::getNome, Comparator.nullsLast(String::compareToIgnoreCase))
+        );
 
         List<TarefaUrgenteResponse> urgentesResponse = new ArrayList<>();
         for (int i = 0; i < urgentes.size(); i++) {
@@ -127,7 +135,10 @@ public class DashboardService {
                     t.getNome(),
                     t.getProjeto() == null ? "" : t.getProjeto().getCodigo(),
                     responsaveis(t),
-                    prioridade
+                    prioridade,
+                    t.getDataFimPrev().toLocalDate(),
+                    fimEmAtraso(t, hoje),
+                    t.getObservacao() == null ? "" : t.getObservacao().trim()
             ));
         }
 
@@ -184,10 +195,15 @@ public class DashboardService {
         return switch (prioridade.trim().toLowerCase(Locale.ROOT)) {
             case "crítica", "critica" -> 0;
             case "alta" -> 1;
-            case "média", "media", "moderada" -> 2;
-            case "baixa" -> 3;
+            case "média", "media" -> 2;
+            case "moderada" -> 3;
+            case "baixa" -> 4;
             default -> 99;
         };
+    }
+
+    private boolean fimEmAtraso(Tarefa t, LocalDate hoje) {
+        return t.getDataFimPrev() != null && t.getDataFimPrev().toLocalDate().isBefore(hoje);
     }
 
     private int percentual(double parte, double total) {

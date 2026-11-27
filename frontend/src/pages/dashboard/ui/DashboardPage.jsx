@@ -73,6 +73,14 @@ export function DashboardPage() {
   const { todayPending, weekPending, late, hours, urgentToday, months } = dashboard;
   const maxMonth = Math.max(1, ...months.map((m) => m.total));
   const hasChartData = months.some((m) => m.total > 0);
+  const overdueCount = urgentToday.filter((task) => task.late).length;
+
+  const formatDueDate = (dueDate) => {
+    if (!dueDate) return '-';
+    const parsed = new Date(`${dueDate}T00:00:00`);
+    if (Number.isNaN(parsed.getTime())) return dueDate;
+    return parsed.toLocaleDateString('pt-BR');
+  };
 
   return (
     <div className="dashboard">
@@ -142,27 +150,44 @@ export function DashboardPage() {
             <h2>
               <CalendarCheck2 size={20} /> Tarefas urgentes
             </h2>
-            <span>{urgentToday.length} para hoje</span>
+            <span>{urgentToday.length} urgentes</span>
           </header>
           {urgentToday.length === 0 && (
             <div className="dash-empty">
               <CircleCheckBig size={32} />
-              <strong>Tudo em dia por hoje</strong>
-              <small>Nenhuma tarefa pendente para hoje.</small>
+              <strong>Tudo em dia</strong>
+              <small>Nenhuma tarefa pendente para hoje ou em atraso.</small>
             </div>
           )}
-          {urgentToday.map((task) => (
-            <div className="urgent-row" key={task.id}>
-              <i className={task.priority === 'Crítica' ? 'critical' : ''} />
-              <div>
-                <strong>{task.name}</strong>
-                <small>
-                  {task.project} · {task.member}
-                </small>
-              </div>
-              <span className="urgent-priority">{task.priority}</span>
+          {urgentToday.length > 0 && (
+            <div className={`urgent-list ${overdueCount > 5 ? 'with-scroll' : ''}`}>
+              {urgentToday.map((task) => (
+                <details className="urgent-item" key={task.id}>
+                  <summary className="urgent-row">
+                    <i className={task.priority === 'Crítica' ? 'critical' : ''} />
+                    <div>
+                      <strong>{task.name}</strong>
+                      <small>
+                        {task.project} · {task.member}
+                      </small>
+                    </div>
+                    <span className="urgent-priority">{task.priority}</span>
+                  </summary>
+                  <div className="urgent-details">
+                    <p>
+                      <strong>Prazo:</strong> {formatDueDate(task.dueDate)}
+                    </p>
+                    <p>
+                      <strong>Situação:</strong> {task.late ? 'Atrasada' : 'Entrega hoje'}
+                    </p>
+                    <p>
+                      <strong>Observação:</strong> {task.note || 'Sem observação'}
+                    </p>
+                  </div>
+                </details>
+              ))}
             </div>
-          ))}
+          )}
         </div>
 
         <div className="dash-panel chart">

@@ -17,6 +17,8 @@ import java.time.ZoneId;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -63,6 +65,32 @@ class DashboardServiceTests {
         assertEquals("Alta", resposta.getUrgentToday().get(1).getPriority());
         assertEquals("Moderada", resposta.getUrgentToday().get(2).getPriority());
         assertEquals("Baixa", resposta.getUrgentToday().get(3).getPriority());
+    }
+
+    @Test
+    void incluiAtrasadasENovaOrdenacaoPorDataEPrioridade() {
+        TarefaRepository repository = mock(TarefaRepository.class);
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        Projeto projeto = new Projeto();
+        projeto.setCodigo("COM-011");
+
+        Tarefa atrasadaCritica = tarefaParaHoje("Atrasada crítica", projeto, "Crítica", hoje.minusDays(3).atTime(18, 0));
+        Tarefa atrasadaBaixa = tarefaParaHoje("Atrasada baixa", projeto, "Baixa", hoje.minusDays(3).atTime(18, 0));
+        Tarefa hojeModerada = tarefaParaHoje("Hoje moderada", projeto, "Moderada", hoje.atTime(18, 0));
+        Tarefa hojeMedia = tarefaParaHoje("Hoje média", projeto, "Média", hoje.atTime(18, 0));
+        Tarefa futuraAlta = tarefaParaHoje("Futura alta", projeto, "Alta", hoje.plusDays(2).atTime(18, 0));
+
+        when(repository.findAll()).thenReturn(List.of(hojeModerada, futuraAlta, atrasadaBaixa, hojeMedia, atrasadaCritica));
+
+        DashboardResponse resposta = new DashboardService(repository).listar(null);
+
+        assertEquals(4, resposta.getUrgentToday().size());
+        assertEquals("Atrasada crítica", resposta.getUrgentToday().get(0).getName());
+        assertEquals("Atrasada baixa", resposta.getUrgentToday().get(1).getName());
+        assertEquals("Hoje média", resposta.getUrgentToday().get(2).getName());
+        assertEquals("Hoje moderada", resposta.getUrgentToday().get(3).getName());
+        assertTrue(resposta.getUrgentToday().get(0).isLate());
+        assertFalse(resposta.getUrgentToday().get(2).isLate());
     }
 
     private Tarefa tarefaParaHoje(String nome, Projeto projeto, String nomePrioridade, LocalDateTime fimPrev) {
