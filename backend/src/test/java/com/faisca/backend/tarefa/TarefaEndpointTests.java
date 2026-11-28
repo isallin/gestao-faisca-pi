@@ -59,9 +59,11 @@ class TarefaEndpointTests extends EndpointTestBase {
     void atualizarTarefaRetorna200() throws Exception {
         String token = login();
         int[] cenario = criarCenario(token);
+        int colaboradorId = criarColaborador(token);
         HttpResponse<String> resp = send("PUT", "/api/tarefas/" + cenario[3],
                 "{\"projetoId\":" + cenario[0] + ",\"categoriaId\":" + cenario[1] + ",\"fkTarefaFase\":" + cenario[2] + ","
                         + "\"nome\":\"Tarefa atualizada\",\"prioridadeId\":" + primeiraPrioridade(token) + ","
+                        + "\"colaboradorId\":" + colaboradorId + ","
                         + "\"dataInicioPrev\":\"2026-12-02T09:00:00\","
                         + "\"dataFimPrev\":\"2026-12-06T18:00:00\",\"status\":\"Concluído\"}", token);
         assertEquals(200, resp.statusCode(), resp.body());
@@ -102,6 +104,36 @@ class TarefaEndpointTests extends EndpointTestBase {
                         + "\"dataInicioPrev\":\"2026-12-01T09:00:00\",\"dataFimPrev\":\"2026-12-05T18:00:00\","
                         + "\"status\":\"Em andamento\"}", token);
         assertEquals(400, resp.statusCode(), resp.body());
+    }
+
+    @Test
+    void criarEAtualizarTarefaSemResponsavelRetorna400() throws Exception {
+        String token = login();
+        int[] cenario = criarCenario(token);
+        int prioridadeId = primeiraPrioridade(token);
+
+        HttpResponse<String> semResponsavel = send("POST", "/api/tarefas",
+                "{\"projetoId\":" + cenario[0] + ",\"categoriaId\":" + cenario[1] + ",\"fkTarefaFase\":" + cenario[2] + ","
+                        + "\"nome\":\"Sem responsável\",\"prioridadeId\":" + prioridadeId + ","
+                        + "\"dataInicioPrev\":\"2026-12-01T09:00:00\",\"dataFimPrev\":\"2026-12-05T18:00:00\","
+                        + "\"status\":\"Em andamento\"}", token);
+        assertEquals(400, semResponsavel.statusCode(), semResponsavel.body());
+        assertEquals("Responsável é obrigatório", json(semResponsavel).path("message").asText());
+
+        HttpResponse<String> listaVazia = send("POST", "/api/tarefas",
+                "{\"projetoId\":" + cenario[0] + ",\"categoriaId\":" + cenario[1] + ",\"fkTarefaFase\":" + cenario[2] + ","
+                        + "\"nome\":\"Lista vazia\",\"prioridadeId\":" + prioridadeId + ","
+                        + "\"colaboradoresIds\":[],"
+                        + "\"dataInicioPrev\":\"2026-12-01T09:00:00\",\"dataFimPrev\":\"2026-12-05T18:00:00\","
+                        + "\"status\":\"Em andamento\"}", token);
+        assertEquals(400, listaVazia.statusCode(), listaVazia.body());
+
+        HttpResponse<String> atualizarSemResponsavel = send("PUT", "/api/tarefas/" + cenario[3],
+                "{\"projetoId\":" + cenario[0] + ",\"categoriaId\":" + cenario[1] + ",\"fkTarefaFase\":" + cenario[2] + ","
+                        + "\"nome\":\"Atualizar sem responsável\",\"prioridadeId\":" + prioridadeId + ","
+                        + "\"dataInicioPrev\":\"2026-12-01T09:00:00\",\"dataFimPrev\":\"2026-12-05T18:00:00\","
+                        + "\"status\":\"Em andamento\"}", token);
+        assertEquals(400, atualizarSemResponsavel.statusCode(), atualizarSemResponsavel.body());
     }
 
     // ---------------------- categorias de tarefa ----------------------
@@ -181,10 +213,14 @@ class TarefaEndpointTests extends EndpointTestBase {
 
         HttpResponse<String> listar = send("GET", "/api/tarefas/" + tarefaId + "/colaboradores", null, token);
         assertEquals(200, listar.statusCode(), listar.body());
-        assertEquals(1, json(listar).size());
+        assertEquals(2, json(listar).size());
 
         assertEquals(204, send("DELETE", "/api/tarefas/" + tarefaId + "/colaboradores/" + colaboradorId,
                 null, token).statusCode());
+
+        HttpResponse<String> listarAposRemover = send("GET", "/api/tarefas/" + tarefaId + "/colaboradores", null, token);
+        assertEquals(200, listarAposRemover.statusCode(), listarAposRemover.body());
+        assertEquals(1, json(listarAposRemover).size());
     }
 
     @Test

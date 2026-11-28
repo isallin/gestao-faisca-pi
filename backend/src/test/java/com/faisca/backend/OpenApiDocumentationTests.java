@@ -114,12 +114,12 @@ class OpenApiDocumentationTests {
         assertFalse(token.isBlank());
 
         HttpResponse<String> created = request("POST", "/api/fornecedores",
-                "{\"name\":\"Materiais Central\",\"category\":\"Materiais\"}", token);
+                "{\"name\":\"Materiais Central\",\"category\":\"Materiais\",\"phone\":\"(11) 98765-4321\",\"email\":\"contato@materiais.com\",\"city\":\"São Paulo\"}", token);
         assertEquals(201, created.statusCode(), created.body());
         int id = mapper.readTree(created.body()).path("id").asInt();
         assertEquals(200, request("GET", "/api/fornecedores/" + id, null, token).statusCode());
         assertEquals(200, request("PUT", "/api/fornecedores/" + id,
-                "{\"name\":\"Materiais Atualizados\",\"category\":\"Materiais\"}", token).statusCode());
+                "{\"name\":\"Materiais Atualizados\",\"category\":\"Materiais\",\"phone\":\"(11) 98765-4321\",\"email\":\"contato@materiais.com\",\"city\":\"São Paulo\"}", token).statusCode());
         assertEquals(204, request("DELETE", "/api/fornecedores/" + id, null, token).statusCode());
         assertEquals(404, request("GET", "/api/fornecedores/" + id, null, token).statusCode());
     }

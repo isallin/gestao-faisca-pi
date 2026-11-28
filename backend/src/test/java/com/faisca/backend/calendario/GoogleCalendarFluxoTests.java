@@ -98,21 +98,29 @@ class GoogleCalendarFluxoTests {
         assertEquals(201, cliente.statusCode(), cliente.body());
         int clienteId = mapper.readTree(cliente.body()).path("id").asInt();
 
-        HttpResponse<String> projeto = send("POST", "/api/projetos",
-                "{\"clienteId\":" + clienteId + ",\"codigo\":\"PRJ-001\",\"nome\":\"Reforma Central\","
-                        + "\"dataInicio\":\"2026-11-01T00:00:00\",\"dataFim\":\"2026-12-01T00:00:00\"}", token);
-        assertEquals(201, projeto.statusCode(), projeto.body());
-        int projetoId = mapper.readTree(projeto.body()).path("id").asInt();
-        assertTrue(projetoId > 0, "id do projeto: " + projeto.body());
-
         JsonNode categorias = mapper.readTree(send("GET", "/api/tarefas/categorias", null, token).body());
         JsonNode fases = mapper.readTree(send("GET", "/api/tarefas/fases", null, token).body());
         int categoriaId = categorias.get(0).path("id").asInt();
         int faseId = fases.get(0).path("id").asInt();
 
+        HttpResponse<String> projeto = send("POST", "/api/projetos",
+                "{\"clienteId\":" + clienteId + ",\"codigo\":\"PRJ-001\",\"nome\":\"Reforma Central\","
+                        + "\"tipoImovel\":\"Comercial\",\"areaM2\":120.50,\"fkTarefaFase\":" + faseId + ","
+                        + "\"cep\":\"01310-100\",\"logradouro\":\"Avenida Paulista\",\"numero\":\"100\","
+                        + "\"complemento\":\"Sala 101\",\"bairro\":\"Bela Vista\",\"cidade\":\"São Paulo\","
+                        + "\"estado\":\"SP\",\"pais\":\"Brasil\","
+                        + "\"dataInicio\":\"2026-11-01T00:00:00\",\"dataFim\":\"2026-12-01T00:00:00\"}", token);
+        assertEquals(201, projeto.statusCode(), projeto.body());
+        int projetoId = mapper.readTree(projeto.body()).path("id").asInt();
+        assertTrue(projetoId > 0, "id do projeto: " + projeto.body());
+
+        int usuarioId = ((Number) em.createNativeQuery("SELECT id FROM usuario WHERE email = 'ana@empresa.com'")
+                .getSingleResult()).intValue();
+
         HttpResponse<String> tarefa = send("POST", "/api/tarefas",
                 "{\"projetoId\":" + projetoId + ",\"categoriaId\":" + categoriaId + ",\"fkTarefaFase\":" + faseId + ","
                         + "\"nome\":\"Revisar planta\",\"prioridade\":\"Moderada\","
+                        + "\"colaboradorId\":" + usuarioId + ","
                         + "\"dataInicioPrev\":\"2026-11-20T09:00:00\",\"dataFimPrev\":\"2026-11-22T18:00:00\","
                         + "\"status\":\"Em andamento\"}", token);
         assertEquals(201, tarefa.statusCode(), tarefa.body());
@@ -136,8 +144,6 @@ class GoogleCalendarFluxoTests {
         assertEquals(204, send("DELETE", "/api/calendar/conexao", null, token).statusCode());
 
         // regressão: desconectar COM token salvo remove o vínculo (o delete derivado exige transação)
-        int usuarioId = ((Number) em.createNativeQuery("SELECT id FROM usuario WHERE email = 'ana@empresa.com'")
-                .getSingleResult()).intValue();
         jdbc.execute("INSERT INTO google_token (fkUsuario, access_token, refresh_token, expira_em) VALUES ("
                 + usuarioId + ", 'acesso-falso', 'refresh-falso', " + (System.currentTimeMillis() + 3_600_000) + ")");
         assertEquals(1L, ((Number) em.createNativeQuery("SELECT COUNT(*) FROM google_token").getSingleResult()).longValue());

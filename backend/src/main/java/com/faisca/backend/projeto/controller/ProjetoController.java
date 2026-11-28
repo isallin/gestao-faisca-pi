@@ -47,7 +47,7 @@ public class ProjetoController {
     }
 
     @PostMapping
-    @Operation(summary = "Cadastrar projeto", description = "Cria projeto associado a um cliente, endereço e fase opcional.")
+    @Operation(summary = "Cadastrar projeto", description = "Cria projeto associado a um cliente, endereço e fase.")
     @ApiResponse(responseCode = "201", description = "Projeto criado", content = @Content(schema = @Schema(implementation = ProjetoResponse.class)))
     @ApiResponse(responseCode = "400", description = "Dados inválidos ou fim anterior ao início")
     @ApiResponse(responseCode = "401", description = "Token ausente ou inválido")

@@ -14,10 +14,13 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @Service
 @Transactional
 public class FornecedorService {
+
+    private static final Pattern PHONE_PATTERN = Pattern.compile("^\\(?\\d{2}\\)?\\s?9?\\d{4}-?\\d{4}$");
 
     private final FornecedorEmpresaRepository empresas;
     private final FornecedorCategoriaRepository categorias;
@@ -224,8 +227,14 @@ public class FornecedorService {
         if (!temCategorias) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe ao menos uma categoria para o fornecedor");
         }
+        String cidade = firstNonBlank(r.getCidade(), r.getCity());
+        if (blank(cidade)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cidade é obrigatória");
+        }
+        validarContatoPrincipal(r);
+
         empresa.setNome(nome.trim());
-        empresa.setCidade(trimToNull(firstNonBlank(r.getCidade(), r.getCity())));
+        empresa.setCidade(cidade.trim());
         empresa.setOrigem(trimToNull(r.getOrigem()));
         String uf = trimToNull(r.getEstado());
         empresa.setEstado(uf == null ? null : uf.toUpperCase());
@@ -331,6 +340,28 @@ public class FornecedorService {
         if (r.getJaTrabalhei() == null) {
             boolean temProjetosTexto = !blank(r.getProjects());
             empresa.setJaTrabalhei(!empresa.getProjetos().isEmpty() || temProjetosTexto);
+        }
+    }
+
+    private void validarContatoPrincipal(FornecedorRequest r) {
+        String telefonePrincipal;
+        String emailPrincipal;
+        if (r.getContatos() != null) {
+            FornecedorContatoRequest principal = r.getContatos().isEmpty() ? null : r.getContatos().get(0);
+            telefonePrincipal = principal != null ? principal.getTelefone() : null;
+            emailPrincipal = principal != null ? principal.getEmail() : null;
+        } else {
+            telefonePrincipal = r.getPhone();
+            emailPrincipal = r.getEmail();
+        }
+        if (blank(telefonePrincipal)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Telefone 1 é obrigatório");
+        }
+        if (!PHONE_PATTERN.matcher(telefonePrincipal.trim()).matches()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Telefone 1 inválido");
+        }
+        if (blank(emailPrincipal)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "E-mail 1 é obrigatório");
         }
     }
 

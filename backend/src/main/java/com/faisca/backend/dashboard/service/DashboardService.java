@@ -16,8 +16,10 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 @Service
 public class DashboardService {
@@ -58,6 +60,7 @@ public class DashboardService {
         double horasMes = 0;
 
         List<Tarefa> urgentes = new ArrayList<>();
+        Set<Integer> idsUrgentes = new HashSet<>();
 
         int[] concluidasPorMes = new int[MESES_NO_GRAFICO];
         int[] pendentesPorMes = new int[MESES_NO_GRAFICO];
@@ -71,20 +74,17 @@ public class DashboardService {
 
             if (!concluida) {
                 emAberto++;
-                if (fim != null && fim.isBefore(hoje)) {
-                    atrasadas++;
-                }
-
-                if (fim != null && (fim.equals(hoje) || fim.isBefore(hoje))) {
-                    urgentes.add(t);
+                if (fim != null) {
+                    if (fim.isBefore(hoje)) {
+                        atrasadas++;
+                    }
+                    if (!fim.isAfter(hoje) && (t.getId() == null || idsUrgentes.add(t.getId()))) {
+                        urgentes.add(t);
+                    }
                 }
             }
 
             if (fim != null) {
-                if (!concluida && (fim.isEqual(hoje) || fim.isBefore(hoje))) {
-                    urgentes.add(t);
-                }
-
                 if (fim.equals(hoje)) {
                     totalHoje++;
                     if (!concluida) {

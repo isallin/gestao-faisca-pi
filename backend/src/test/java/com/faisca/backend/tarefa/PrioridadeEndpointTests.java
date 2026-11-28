@@ -72,9 +72,11 @@ class PrioridadeEndpointTests extends EndpointTestBase {
         int prioridadeId = idDe(criar);
 
         int[] cenario = criarCenario(token);
+        int colaboradorId = criarColaborador(token);
         HttpResponse<String> tarefa = send("POST", "/api/tarefas",
                 "{\"projetoId\":" + cenario[0] + ",\"categoriaId\":" + cenario[1] + ",\"fkTarefaFase\":" + cenario[2] + ","
                         + "\"nome\":\"Tarefa com prioridade\",\"prioridadeId\":" + prioridadeId + ","
+                        + "\"colaboradorId\":" + colaboradorId + ","
                         + "\"dataInicioPrev\":\"2026-12-01T09:00:00\",\"dataFimPrev\":\"2026-12-05T18:00:00\","
                         + "\"status\":\"Em andamento\"}", token);
         assertEquals(201, tarefa.statusCode(), tarefa.body());

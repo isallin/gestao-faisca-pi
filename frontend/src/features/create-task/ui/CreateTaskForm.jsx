@@ -52,6 +52,7 @@ export function CreateTaskForm({ onClose, task }) {
     event.preventDefault();
     const data = readForm(event.currentTarget);
 
+    if (!data.member) return setError('Selecione um responsável para continuar.');
     if (!data.name) return setError('Preencha o nome da tarefa para continuar.');
     if (!data.priority) return setError('Selecione uma prioridade para continuar.');
     if (data.end < data.start) {
@@ -63,6 +64,9 @@ export function CreateTaskForm({ onClose, task }) {
     const phaseId = Number(data.phaseId || task?.stageId || tasks.phases[0]?.id || 0) || null;
     const phaseName = tasks.phases.find((item) => item.id === phaseId)?.nome ?? task?.stage;
     const member = collaborators.find((item) => item.name === data.member);
+    if (!member?.id) {
+      return setError('Selecione um responsável válido para continuar.');
+    }
     const selectedPriority = normalizePriorityLabel(data.priority);
     const priorityEntity = (tasks.priorities ?? []).find(
       (item) => normalizePriorityLabel(item.nome).toLowerCase() === selectedPriority.toLowerCase(),
@@ -132,7 +136,12 @@ export function CreateTaskForm({ onClose, task }) {
         <FormAlert>{error}</FormAlert>
         <FormColumns cols={2}>
           <div>
-            <SelectField label="Responsável" name="member" defaultValue={task?.member ?? ''}>
+            <SelectField
+              key={`${task?.member ?? ''}-${collaborators.length}`}
+              label="Responsável"
+              name="member"
+              defaultValue={task?.member ?? ''}
+            >
               <option value="" disabled>Selecione...</option>
               {collaborators.map((c) => (
                 <option key={c.id ?? c.name} value={c.name}>

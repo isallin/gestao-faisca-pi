@@ -295,6 +295,9 @@ public class TarefaService {
         Fase fase = fases.findById(r.getFkTarefaFase())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Fase não encontrada"));
 
+        if (coletarColaboradoresDesejados(r).isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Responsável é obrigatório");
+        }
         Prioridade prioridadeEntity = resolverPrioridade(r);
 
         tarefa.setProjeto(projeto);
@@ -321,8 +324,7 @@ public class TarefaService {
         return prioridadeService.obterOuCriarPorNome(r.getPrioridade());
     }
 
-    private void sincronizarAssociacoes(Tarefa tarefa, Fase fase, TarefaCadastroRequest r) {
-        // 1) Colaboradores N:N (colaborador_tarefa com data_atribuicao)
+    private LinkedHashSet<Integer> coletarColaboradoresDesejados(TarefaCadastroRequest r) {
         LinkedHashSet<Integer> desejados = new LinkedHashSet<>();
         if (r.getColaboradoresIds() != null) {
             for (Integer cid : r.getColaboradoresIds()) {
@@ -332,6 +334,12 @@ public class TarefaService {
         if (r.getColaboradorId() != null) {
             desejados.add(r.getColaboradorId());
         }
+        return desejados;
+    }
+
+    private void sincronizarAssociacoes(Tarefa tarefa, Fase fase, TarefaCadastroRequest r) {
+        // 1) Colaboradores N:N (colaborador_tarefa com data_atribuicao)
+        LinkedHashSet<Integer> desejados = coletarColaboradoresDesejados(r);
 
         // Mantém vínculos que possuem registro_horas para preservar integridade referencial V8
         tarefa.getAtribuicoes().removeIf(ct -> {

@@ -1,41 +1,50 @@
 package com.faisca.backend.projeto.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class EnderecoProjetoRequest {
 
-    @Pattern(regexp = "^$|^\\d{5}-?\\d{3}$", message = "CEP inválido")
-    @Schema(description = "CEP", example = "01310-100")
+    @NotBlank(message = "CEP é obrigatório")
+    @Pattern(regexp = "^\\d{5}-?\\d{3}$", message = "CEP inválido")
+    @Schema(description = "CEP", example = "01310-100", requiredMode = Schema.RequiredMode.REQUIRED)
     private String cep;
 
-    @Size(max = 200)
-    @Schema(description = "Logradouro", example = "Avenida Paulista")
+    @NotBlank(message = "Logradouro é obrigatório")
+    @Size(max = 200, message = "Logradouro deve ter no máximo 200 caracteres")
+    @Schema(description = "Logradouro", example = "Avenida Paulista", requiredMode = Schema.RequiredMode.REQUIRED)
     private String logradouro;
 
-    @Size(max = 10)
-    @Schema(description = "Número", example = "100")
+    @NotBlank(message = "Número é obrigatório")
+    @Size(max = 10, message = "Número deve ter no máximo 10 caracteres")
+    @Schema(description = "Número", example = "100", requiredMode = Schema.RequiredMode.REQUIRED)
     private String numero;
 
-    @Size(max = 60)
-    @Schema(description = "Complemento", example = "Sala 101")
+    @NotBlank(message = "Complemento é obrigatório")
+    @Size(max = 60, message = "Complemento deve ter no máximo 60 caracteres")
+    @Schema(description = "Complemento", example = "Sala 101", requiredMode = Schema.RequiredMode.REQUIRED)
     private String complemento;
 
-    @Size(max = 80)
-    @Schema(description = "Bairro", example = "Bela Vista")
+    @NotBlank(message = "Bairro é obrigatório")
+    @Size(max = 80, message = "Bairro deve ter no máximo 80 caracteres")
+    @Schema(description = "Bairro", example = "Bela Vista", requiredMode = Schema.RequiredMode.REQUIRED)
     private String bairro;
 
-    @Size(max = 80)
-    @Schema(description = "Cidade", example = "São Paulo")
+    @NotBlank(message = "Cidade é obrigatória")
+    @Size(max = 80, message = "Cidade deve ter no máximo 80 caracteres")
+    @Schema(description = "Cidade", example = "São Paulo", requiredMode = Schema.RequiredMode.REQUIRED)
     private String cidade;
 
-    @Pattern(regexp = "^$|^[A-Za-z]{2}$", message = "Use a sigla da UF (ex.: SP)")
-    @Schema(description = "UF", example = "SP")
+    @NotBlank(message = "Estado é obrigatório")
+    @Pattern(regexp = "^[A-Za-z]{2}$", message = "Use a sigla da UF (ex.: SP)")
+    @Schema(description = "UF", example = "SP", requiredMode = Schema.RequiredMode.REQUIRED)
     private String estado;
 
-    @Size(max = 80)
-    @Schema(description = "País", example = "Brasil")
+    @NotBlank(message = "País é obrigatório")
+    @Size(max = 80, message = "País deve ter no máximo 80 caracteres")
+    @Schema(description = "País", example = "Brasil", requiredMode = Schema.RequiredMode.REQUIRED)
     private String pais;
 
     public String getCep() { return cep; }

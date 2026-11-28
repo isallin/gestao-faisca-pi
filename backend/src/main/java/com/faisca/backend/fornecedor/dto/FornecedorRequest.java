@@ -26,30 +26,31 @@ public class FornecedorRequest {
     @Schema(description = "Categoria principal (alias PT-BR)", example = "Materiais")
     private String categoria;
 
-    @Size(max = 20)
-    @Schema(description = "Telefone principal (compatibilidade legada)", example = "11987654321")
+    @Size(max = 20, message = "Telefone 1 deve ter no máximo 20 caracteres")
+    @Schema(description = "Telefone principal (obrigatório quando contatos não é informado)", example = "(11) 98765-4321", requiredMode = Schema.RequiredMode.REQUIRED)
     private String phone;
 
-    @Size(max = 20)
-    @Schema(description = "Telefone alternativo (compatibilidade legada)", example = "1134567890")
+    @Pattern(regexp = "^$|^\\(?\\d{2}\\)?\\s?9?\\d{4}-?\\d{4}$", message = "Telefone 2 inválido")
+    @Size(max = 20, message = "Telefone 2 deve ter no máximo 20 caracteres")
+    @Schema(description = "Telefone alternativo opcional", example = "(11) 3456-7890")
     private String phone2;
 
-    @Email(message = "E-mail principal inválido")
-    @Size(max = 120)
-    @Schema(description = "E-mail principal (compatibilidade legada)", example = "contato@materiais.com")
+    @Email(message = "E-mail 1 inválido")
+    @Size(max = 120, message = "E-mail 1 deve ter no máximo 120 caracteres")
+    @Schema(description = "E-mail principal (obrigatório quando contatos não é informado)", example = "contato@materiais.com", requiredMode = Schema.RequiredMode.REQUIRED)
     private String email;
 
-    @Email(message = "E-mail alternativo inválido")
-    @Size(max = 120)
-    @Schema(description = "E-mail alternativo (compatibilidade legada)", example = "vendas@materiais.com")
+    @Email(message = "E-mail 2 inválido")
+    @Size(max = 120, message = "E-mail 2 deve ter no máximo 120 caracteres")
+    @Schema(description = "E-mail alternativo opcional", example = "vendas@materiais.com")
     private String email2;
 
-    @Size(max = 80)
-    @Schema(description = "Cidade (compatibilidade legada)", example = "São Paulo")
+    @Size(max = 80, message = "Cidade deve ter no máximo 80 caracteres")
+    @Schema(description = "Cidade (obrigatória caso 'cidade' não seja informada)", example = "São Paulo", requiredMode = Schema.RequiredMode.REQUIRED)
     private String city;
 
-    @Size(max = 80)
-    @Schema(description = "Cidade (V8)", example = "São Paulo")
+    @Size(max = 80, message = "Cidade deve ter no máximo 80 caracteres")
+    @Schema(description = "Cidade (V8; obrigatória caso 'city' não seja informada)", example = "São Paulo", requiredMode = Schema.RequiredMode.REQUIRED)
     private String cidade;
 
     @Size(max = 80)

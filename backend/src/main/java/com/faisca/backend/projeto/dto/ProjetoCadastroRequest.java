@@ -27,12 +27,14 @@ public class ProjetoCadastroRequest {
     @Size(max = 150, message = "Nome deve ter no máximo 150 caracteres")
     private String nome;
 
-    @Size(max = 45, message = "Campo tipoImovel deve ter no máximo 45 caracteres")
-    @Schema(description = "Tipo de imóvel", example = "Comercial")
+    @NotBlank(message = "Tipo de imóvel é obrigatório")
+    @Size(max = 45, message = "Tipo de imóvel deve ter no máximo 45 caracteres")
+    @Schema(description = "Tipo de imóvel", example = "Comercial", requiredMode = Schema.RequiredMode.REQUIRED)
     private String tipoImovel;
 
+    @NotNull(message = "Metragem é obrigatória")
     @DecimalMin(value = "0.0", message = "Área não pode ser negativa")
-    @Schema(description = "Área em metros quadrados", example = "120.50")
+    @Schema(description = "Área em metros quadrados", example = "120.50", requiredMode = Schema.RequiredMode.REQUIRED)
     @Digits(integer = 8, fraction = 2, message = "Área deve ter até 8 dígitos inteiros e 2 decimais")
     private BigDecimal areaM2;
 
@@ -40,35 +42,69 @@ public class ProjetoCadastroRequest {
     @Schema(description = "Número da unidade", example = "101")
     private String unidadeNumero;
 
-    @Size(max = 100, message = "Campo condominio deve ter no máximo 100 caracteres")
-    @Schema(description = "Condomínio", example = "Edifício Central")
+    @Size(max = 100, message = "Condomínio deve ter no máximo 100 caracteres")
+    @Schema(description = "Condomínio opcional", example = "Edifício Central")
     private String condominio;
 
-    @Size(max = 50, message = "Campo matricula deve ter no máximo 50 caracteres")
-    @Schema(description = "Matrícula do imóvel", example = "12345")
+    @Size(max = 50, message = "Matrícula deve ter no máximo 50 caracteres")
+    @Schema(description = "Matrícula do imóvel opcional", example = "12345")
     private String matricula;
 
-    @Schema(description = "Início em horário local ISO 8601", example = "2026-11-02T09:00:00")
+    @NotNull(message = "Data de início é obrigatória")
+    @Schema(description = "Início em horário local ISO 8601", example = "2026-11-02T09:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     private LocalDateTime dataInicio;
 
-    @Schema(description = "Fim em horário local ISO 8601", example = "2026-12-02T18:00:00")
+    @NotNull(message = "Data do fim é obrigatória")
+    @Schema(description = "Fim em horário local ISO 8601", example = "2026-12-02T18:00:00", requiredMode = Schema.RequiredMode.REQUIRED)
     private LocalDateTime dataFim;
 
-    @Size(max = 300, message = "Campo observacao deve ter no máximo 300 caracteres")
-    @Schema(description = "Observações", example = "Adequação do espaço")
+    @Size(max = 300, message = "Observação deve ter no máximo 300 caracteres")
+    @Schema(description = "Observações opcionais", example = "Adequação do espaço")
     private String observacao;
 
-    @Schema(description = "CEP opcional", example = "01310-100") @Pattern(regexp = "^$|^\\d{5}-?\\d{3}$") private String cep;
-    @Schema(description = "Logradouro opcional", example = "Avenida Paulista") @Size(max = 200) private String logradouro;
-    @Schema(description = "Número do endereço do imóvel (V8)", example = "248") @Size(max = 10) private String numero;
-    @Schema(description = "Complemento opcional", example = "Sala 101") @Size(max = 60) private String complemento;
-    @Schema(description = "Bairro opcional", example = "Bela Vista") @Size(max = 80) private String bairro;
-    @Schema(description = "Cidade opcional", example = "São Paulo") @Size(max = 80) private String cidade;
-    @Schema(description = "UF opcional", example = "SP") @Pattern(regexp = "^$|^[A-Za-z]{2}$") private String estado;
-    @Schema(description = "País opcional", example = "Brasil") @Size(max = 80) private String pais;
+    @NotBlank(message = "CEP é obrigatório")
+    @Schema(description = "CEP", example = "01310-100", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Pattern(regexp = "^\\d{5}-?\\d{3}$", message = "CEP inválido")
+    private String cep;
 
+    @NotBlank(message = "Logradouro é obrigatório")
+    @Schema(description = "Logradouro", example = "Avenida Paulista", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 200, message = "Logradouro deve ter no máximo 200 caracteres")
+    private String logradouro;
+
+    @NotBlank(message = "Número é obrigatório")
+    @Schema(description = "Número do endereço do imóvel (V8)", example = "248", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 10, message = "Número deve ter no máximo 10 caracteres")
+    private String numero;
+
+    @NotBlank(message = "Complemento é obrigatório")
+    @Schema(description = "Complemento", example = "Sala 101", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 60, message = "Complemento deve ter no máximo 60 caracteres")
+    private String complemento;
+
+    @NotBlank(message = "Bairro é obrigatório")
+    @Schema(description = "Bairro", example = "Bela Vista", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 80, message = "Bairro deve ter no máximo 80 caracteres")
+    private String bairro;
+
+    @NotBlank(message = "Cidade é obrigatória")
+    @Schema(description = "Cidade", example = "São Paulo", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 80, message = "Cidade deve ter no máximo 80 caracteres")
+    private String cidade;
+
+    @NotBlank(message = "Estado é obrigatório")
+    @Schema(description = "Sigla da UF", example = "SP", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Pattern(regexp = "^[A-Za-z]{2}$", message = "Use a sigla da UF (ex.: SP)")
+    private String estado;
+
+    @NotBlank(message = "País é obrigatório")
+    @Schema(description = "País", example = "Brasil", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Size(max = 80, message = "País deve ter no máximo 80 caracteres")
+    private String pais;
+
+    @NotNull(message = "Fase é obrigatória")
     @Positive(message = "ID de tarefa/fase deve ser positivo")
-    @Schema(description = "ID opcional da fase", example = "1")
+    @Schema(description = "ID da fase", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer fkTarefaFase;
 
     public String getCep() { return cep; }

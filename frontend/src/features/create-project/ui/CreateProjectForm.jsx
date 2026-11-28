@@ -39,52 +39,61 @@ function isValidArea(value) {
 }
 
 function validateProjectForm(data, clientId, phaseId) {
-  if (!clientId) return 'Cliente é obrigatório';
-  if (clientId <= 0) return 'ID do cliente deve ser positivo';
+  if (blank(data.name)) return 'Nome é obrigatório';
+  if (data.name.trim().length > 150) return 'Nome deve ter no máximo 150 caracteres';
 
   if (blank(data.code)) return 'Código é obrigatório';
   if (data.code.trim().length > 45) return 'Código deve ter no máximo 45 caracteres';
 
-  if (blank(data.name)) return 'Nome é obrigatório';
-  if (data.name.trim().length > 150) return 'Nome deve ter no máximo 150 caracteres';
+  if (!clientId) return 'Cliente é obrigatório';
+  if (clientId <= 0) return 'ID do cliente deve ser positivo';
 
-  if (!blank(data.propertyType) && data.propertyType.trim().length > 45) {
-    return 'Campo tipoImovel deve ter no máximo 45 caracteres';
+  if (blank(data.propertyType)) return 'Tipo de imóvel é obrigatório';
+  if (data.propertyType.trim().length > 45) {
+    return 'Tipo de imóvel deve ter no máximo 45 caracteres';
   }
 
-  if (!blank(data.area)) {
-    const normalized = String(data.area).trim().replace(',', '.');
-    const area = Number(normalized);
-    if (Number.isNaN(area)) return 'Área deve ter até 8 dígitos inteiros e 2 decimais';
-    if (area < 0) return 'Área não pode ser negativa';
-    if (!isValidArea(normalized)) return 'Área deve ter até 8 dígitos inteiros e 2 decimais';
-  }
+  if (blank(data.area)) return 'Metragem é obrigatória';
+  const normalized = String(data.area).trim().replace(',', '.');
+  const area = Number(normalized);
+  if (Number.isNaN(area)) return 'Área deve ter até 8 dígitos inteiros e 2 decimais';
+  if (area < 0) return 'Área não pode ser negativa';
+  if (!isValidArea(normalized)) return 'Área deve ter até 8 dígitos inteiros e 2 decimais';
 
-  if (!blank(data.number) && data.number.trim().length > 20) {
-    return 'Campo unidadeNumero deve ter no máximo 20 caracteres';
-  }
   if (!blank(data.condo) && data.condo.trim().length > 100) {
-    return 'Campo condominio deve ter no máximo 100 caracteres';
+    return 'Condomínio deve ter no máximo 100 caracteres';
   }
   if (!blank(data.registry) && data.registry.trim().length > 50) {
-    return 'Campo matricula deve ter no máximo 50 caracteres';
+    return 'Matrícula deve ter no máximo 50 caracteres';
   }
+
+  if (blank(data.zip)) return 'CEP é obrigatório';
+  if (!CEP_REGEX.test(data.zip.trim())) return 'CEP inválido';
+  if (blank(data.street)) return 'Logradouro é obrigatório';
+  if (data.street.trim().length > 200) return 'Logradouro deve ter no máximo 200 caracteres';
+  if (blank(data.number)) return 'Número é obrigatório';
+  if (data.number.trim().length > 10) return 'Número deve ter no máximo 10 caracteres';
+  if (blank(data.complement)) return 'Complemento é obrigatório';
+  if (data.complement.trim().length > 60) return 'Complemento deve ter no máximo 60 caracteres';
+  if (blank(data.neighborhood)) return 'Bairro é obrigatório';
+  if (data.neighborhood.trim().length > 80) return 'Bairro deve ter no máximo 80 caracteres';
+  if (blank(data.city)) return 'Cidade é obrigatória';
+  if (data.city.trim().length > 80) return 'Cidade deve ter no máximo 80 caracteres';
+  if (blank(data.state)) return 'Estado é obrigatório';
+  if (!UF_REGEX.test(data.state.trim())) return 'Use a sigla da UF (ex.: SP)';
+  if (blank(data.country)) return 'País é obrigatório';
+  if (data.country.trim().length > 80) return 'País deve ter no máximo 80 caracteres';
+
+  if (!phaseId) return 'Fase é obrigatória';
+  if (phaseId <= 0) return 'ID de tarefa/fase deve ser positivo';
+
+  if (blank(data.start)) return 'Data de início é obrigatória';
+  if (blank(data.end)) return 'Data do fim é obrigatória';
+  if (data.end < data.start) return 'Fim anterior ao início';
 
   if (!blank(data.note) && data.note.trim().length > 300) {
-    return 'Campo observacao deve ter no máximo 300 caracteres';
+    return 'Observação deve ter no máximo 300 caracteres';
   }
-
-  if (!blank(data.zip) && !CEP_REGEX.test(data.zip.trim())) return 'CEP inválido';
-  if (!blank(data.street) && data.street.trim().length > 200) return 'Logradouro inválido';
-  if (!blank(data.complement) && data.complement.trim().length > 60) return 'Complemento inválido';
-  if (!blank(data.neighborhood) && data.neighborhood.trim().length > 80) return 'Bairro inválido';
-  if (!blank(data.city) && data.city.trim().length > 80) return 'Cidade inválida';
-  if (!blank(data.state) && !UF_REGEX.test(data.state.trim())) return 'Use a sigla da UF (ex.: SP)';
-  if (!blank(data.country) && data.country.trim().length > 80) return 'País inválido';
-
-  if (phaseId && phaseId <= 0) return 'ID de tarefa/fase deve ser positivo';
-
-  if (data.end && data.start && data.end < data.start) return 'Fim anterior ao início';
 
   return '';
 }
@@ -129,10 +138,10 @@ export function CreateProjectForm({ onClose, project }) {
   const [stateCode, setStateCode] = useState(d.state ?? '');
   const lastZipLookup = useRef('');
   const retriedPhases = useRef(false);
-  const defaultClientId = String(
-    project?.clientId ?? clients.find((client) => client.name === project?.client)?.id ?? clients[0]?.id ?? '',
-  );
-  const defaultPhaseId = String(project?.stageId ?? phases[0]?.id ?? '');
+  const defaultClientId = isEditing
+    ? String(project?.clientId ?? clients.find((client) => client.name === project?.client)?.id ?? '')
+    : '';
+  const defaultPhaseId = isEditing ? String(project?.stageId ?? '') : '';
 
   useEffect(() => {
     if (!phases.length && !retriedPhases.current) {
@@ -193,8 +202,8 @@ export function CreateProjectForm({ onClose, project }) {
     event.preventDefault();
     const data = readForm(event.currentTarget);
 
-    const clientId = Number(data.clientId || project?.clientId || clients[0]?.id || 0);
-    const phaseId = Number(data.phaseId || project?.stageId || phases[0]?.id || 0) || null;
+    const clientId = Number(data.clientId || 0);
+    const phaseId = Number(data.phaseId || 0) || null;
     const clientName = clients.find((client) => client.id === clientId)?.name ?? project?.client;
     const phaseName = phases.find((phase) => phase.id === phaseId)?.nome ?? project?.stage;
     const address = `${data.neighborhood ? `${data.neighborhood}, ` : ''}${data.city}-${data.state}`;
@@ -202,21 +211,27 @@ export function CreateProjectForm({ onClose, project }) {
     const validationError = validateProjectForm(data, clientId, phaseId);
     if (validationError) return setError(validationError);
 
+    const trimmedNumber = data.number.trim();
     const payload = {
       clienteId: clientId,
-      codigo: data.code,
+      codigo: data.code.trim(),
       relacaoProprietario: '',
-      nome: data.name || 'Projeto sem nome',
-      tipoImovel: data.propertyType,
-      areaM2: data.area ? Number(String(data.area).replace(',', '.')) : null,
-      unidadeNumero: data.number,
-      numero: data.number ? data.number.slice(0, 10) : '',
+      nome: data.name.trim(),
+      tipoImovel: data.propertyType.trim(),
+      areaM2: Number(String(data.area).trim().replace(',', '.')),
+      unidadeNumero: trimmedNumber,
+      numero: trimmedNumber,
       condominio: data.condo,
       matricula: data.registry,
-      cep: data.zip, logradouro: data.street, complemento: data.complement,
-      bairro: data.neighborhood, cidade: data.city, estado: data.state, pais: data.country,
-      dataInicio: data.start ? `${data.start}T00:00:00` : null,
-      dataFim: data.end ? `${data.end}T00:00:00` : null,
+      cep: data.zip.trim(),
+      logradouro: data.street.trim(),
+      complemento: data.complement.trim(),
+      bairro: data.neighborhood.trim(),
+      cidade: data.city.trim(),
+      estado: data.state.trim().toUpperCase(),
+      pais: data.country.trim(),
+      dataInicio: `${data.start}T00:00:00`,
+      dataFim: `${data.end}T00:00:00`,
       observacao: data.note,
       fkTarefaFase: phaseId,
       status: data.status,
@@ -228,23 +243,19 @@ export function CreateProjectForm({ onClose, project }) {
 
     setError('');
 
-    if (!phaseId) {
-      setError('ID de tarefa/fase deve ser positivo');
-      return;
-    }
-
     try {
       if (isEditing) await update(project.id, payload);
       else await add(payload);
       onClose();
     } catch (requestError) {
       if (axios.isAxiosError(requestError) && requestError.response?.status === 404) {
-        setError('Cliente nao encontrado no backend.');
+        const backendMessage = extractBackendMessage(requestError);
+        setError(backendMessage || 'Cliente ou fase não encontrado(a) no backend.');
       } else if (axios.isAxiosError(requestError) && requestError.response?.status === 400) {
         const backendMessage = extractBackendMessage(requestError);
-        setError(backendMessage || 'Dados invalidos. Confira os campos e tente novamente.');
+        setError(backendMessage || 'Dados inválidos. Confira os campos e tente novamente.');
       } else {
-        setError('Nao foi possivel salvar o projeto no momento.');
+        setError('Não foi possível salvar o projeto no momento.');
       }
     }
   };
@@ -258,7 +269,7 @@ export function CreateProjectForm({ onClose, project }) {
             <h3>Dados do projeto</h3>
             <Field label="Nome" name="name" placeholder="Ex.: Casa Paineiras" defaultValue={project?.name} />
             <Field label="Sigla/Código" name="code" placeholder="Ex.: RES-024" defaultValue={project?.code} />
-            <SelectField label="Cliente" name="clientId" defaultValue={defaultClientId || ""}>
+            <SelectField key={`${defaultClientId}-${clients.length}`} label="Cliente" name="clientId" defaultValue={defaultClientId}>
               <option value="" disabled>Selecione...</option>
               {clients.map((client) => (
                 <option key={client.id} value={client.id}>
@@ -266,7 +277,7 @@ export function CreateProjectForm({ onClose, project }) {
                 </option>
               ))}
             </SelectField>
-            <SelectField label="Tipo de imóvel" name="propertyType" defaultValue={d.propertyType} options={PROPERTY}>
+            <SelectField label="Tipo de imóvel" name="propertyType" defaultValue={d.propertyType ?? ''} options={PROPERTY}>
               <option value="" disabled>Selecione...</option>
             </SelectField>
             <Field label="Metragem (m²)" name="area" placeholder="Ex.: 180" defaultValue={d.area} />

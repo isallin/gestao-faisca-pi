@@ -120,11 +120,14 @@ public abstract class EndpointTestBase {
     }
 
     protected int criarProjeto(String token, int clienteId, Integer faseId) throws Exception {
+        int faseEfetiva = faseId != null ? faseId : criarFase(token);
         String corpo = "{\"clienteId\":" + clienteId + ",\"codigo\":\"PRJ-" + unico("p") + "\","
-                + "\"nome\":\"Obra " + unico("o") + "\""
-                + (faseId != null ? ",\"fkTarefaFase\":" + faseId : "")
-                + ",\"cep\":\"01310-100\",\"logradouro\":\"Rua Oscar Freire\",\"numero\":\"250\","
-                + "\"bairro\":\"Jardins\",\"cidade\":\"São Paulo\",\"estado\":\"SP\",\"pais\":\"Brasil\"}";
+                + "\"nome\":\"Obra " + unico("o") + "\","
+                + "\"tipoImovel\":\"Comercial\",\"areaM2\":150.00,"
+                + "\"fkTarefaFase\":" + faseEfetiva + ","
+                + "\"dataInicio\":\"2026-11-01T00:00:00\",\"dataFim\":\"2026-12-31T00:00:00\","
+                + "\"cep\":\"01310-100\",\"logradouro\":\"Rua Oscar Freire\",\"numero\":\"250\","
+                + "\"complemento\":\"Sala 10\",\"bairro\":\"Jardins\",\"cidade\":\"São Paulo\",\"estado\":\"SP\",\"pais\":\"Brasil\"}";
         HttpResponse<String> r = send("POST", "/api/projetos", corpo, token);
         assertEquals(201, r.statusCode(), r.body());
         return idDe(r);
@@ -138,9 +141,11 @@ public abstract class EndpointTestBase {
 
     protected int criarTarefa(String token, int projetoId, int categoriaId, int faseId) throws Exception {
         int prioridadeId = primeiraPrioridade(token);
+        int colaboradorId = criarColaborador(token);
         HttpResponse<String> r = send("POST", "/api/tarefas",
                 "{\"projetoId\":" + projetoId + ",\"categoriaId\":" + categoriaId + ",\"fkTarefaFase\":" + faseId + ","
                         + "\"nome\":\"Tarefa " + unico("t") + "\",\"prioridadeId\":" + prioridadeId + ","
+                        + "\"colaboradorId\":" + colaboradorId + ","
                         + "\"dataInicioPrev\":\"2026-12-01T09:00:00\",\"dataFimPrev\":\"2026-12-05T18:00:00\","
                         + "\"status\":\"Em andamento\"}", token);
         assertEquals(201, r.statusCode(), r.body());

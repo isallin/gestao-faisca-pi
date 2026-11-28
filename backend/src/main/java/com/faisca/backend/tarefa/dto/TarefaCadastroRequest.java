@@ -60,10 +60,11 @@ public class TarefaCadastroRequest {
     @Size(max = 70, message = "Status deve ter no máximo 70 caracteres")
     private String status;
 
-    @Schema(description = "ID opcional do colaborador principal (compatibilidade)", example = "1")
+    @Positive(message = "ID do responsável deve ser positivo")
+    @Schema(description = "ID do responsável principal (obrigatório caso colaboradoresIds não seja informado)", example = "1")
     private Integer colaboradorId;
 
-    @Schema(description = "Lista de IDs dos colaboradores atribuídos (V8 N:N)")
+    @Schema(description = "Lista de IDs dos responsáveis atribuídos (V8 N:N; obrigatório caso colaboradorId não seja informado)")
     private List<@Positive Integer> colaboradoresIds;
 
     @Schema(description = "Itens opcionais do checklist (compatibilidade)")

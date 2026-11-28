@@ -93,6 +93,45 @@ class DashboardServiceTests {
         assertFalse(resposta.getUrgentToday().get(2).isLate());
     }
 
+    @Test
+    void naoDuplicaTarefasUrgentesNoResultado() {
+        TarefaRepository repository = mock(TarefaRepository.class);
+        LocalDate hoje = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        Projeto projeto = new Projeto();
+        projeto.setCodigo("RES-024");
+
+        Tarefa hojeTarefa = mock(Tarefa.class);
+        when(hojeTarefa.getId()).thenReturn(10);
+        when(hojeTarefa.getNome()).thenReturn("Revisar planta");
+        when(hojeTarefa.getProjeto()).thenReturn(projeto);
+        when(hojeTarefa.getPrioridadeNome()).thenReturn("Alta");
+        when(hojeTarefa.getDataFimPrev()).thenReturn(hoje.atTime(18, 0));
+        when(hojeTarefa.getStatusAtual()).thenReturn("Em andamento");
+        when(hojeTarefa.getColaboradores()).thenReturn(List.of());
+        when(hojeTarefa.getRegistrosHoras()).thenReturn(List.of());
+        when(hojeTarefa.getObservacao()).thenReturn("");
+
+        Tarefa atrasadaTarefa = mock(Tarefa.class);
+        when(atrasadaTarefa.getId()).thenReturn(20);
+        when(atrasadaTarefa.getNome()).thenReturn("Enviar prancha");
+        when(atrasadaTarefa.getProjeto()).thenReturn(projeto);
+        when(atrasadaTarefa.getPrioridadeNome()).thenReturn("Crítica");
+        when(atrasadaTarefa.getDataFimPrev()).thenReturn(hoje.minusDays(2).atTime(18, 0));
+        when(atrasadaTarefa.getStatusAtual()).thenReturn("Pendente");
+        when(atrasadaTarefa.getColaboradores()).thenReturn(List.of());
+        when(atrasadaTarefa.getRegistrosHoras()).thenReturn(List.of());
+        when(atrasadaTarefa.getObservacao()).thenReturn("Atraso confirmado");
+
+        // Mesmo que o repositório devolvesse a mesma referência/ID mais de uma vez, não deve duplicar
+        when(repository.findAll()).thenReturn(List.of(hojeTarefa, atrasadaTarefa, hojeTarefa));
+
+        DashboardResponse resposta = new DashboardService(repository).listar(null);
+
+        assertEquals(2, resposta.getUrgentToday().size());
+        assertEquals(20, resposta.getUrgentToday().get(0).getId());
+        assertEquals(10, resposta.getUrgentToday().get(1).getId());
+    }
+
     private Tarefa tarefaParaHoje(String nome, Projeto projeto, String nomePrioridade, LocalDateTime fimPrev) {
         Prioridade p = new Prioridade();
         p.setNome(nomePrioridade);
